@@ -6,8 +6,11 @@ import { Category } from "@/models/category";
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     await connectToDatabase();
-    const category = await Category.findById(params.id);
-    if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    const category = await Category.findById(params.id).populate("subcategories");
+
+    if (!category) {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
 
     return NextResponse.json(category);
   } catch (error) {
@@ -20,9 +23,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   try {
     await connectToDatabase();
     const updates = await req.json();
-    
-    const category = await Category.findByIdAndUpdate(params.id, updates, { new: true });
-    if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
+
+    const category = await Category.findByIdAndUpdate(params.id, updates, { new: true }).populate("subcategories");
+
+    if (!category) {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
 
     return NextResponse.json(category);
   } catch (error) {
@@ -35,7 +41,12 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   try {
     await connectToDatabase();
     const category = await Category.findByIdAndDelete(params.id);
-    if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
+
+    if (!category) {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
+
+    await Category.updateMany({ subcategories: params.id }, { $pull: { subcategories: params.id } });
 
     return NextResponse.json({ message: "Category deleted successfully" });
   } catch (error) {
