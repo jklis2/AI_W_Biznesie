@@ -21,10 +21,10 @@ export default function ChatAssistant() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const suggestedQuestions = [
-    "Which processor works best with RTX 4070?",
-    "What cooling solution for Ryzen 7 7800X?",
-    "Best RAM for gaming PC?",
-    "Budget motherboard recommendations?"
+    "I need a gaming PC with RTX 4090 and Ryzen 7. Budget $2000",
+    "Looking for a gaming PC with good cooling and 32GB RAM",
+    "What PC can I get for $1500?",
+    "Do you recommend water or air cooling?"
   ];
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function ChatAssistant() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
     
     const newUserMessage: Message = {
@@ -46,19 +46,41 @@ export default function ChatAssistant() {
     
     setMessages(prev => [...prev, newUserMessage]);
     setInput('');
-    
     setIsTyping(true);
     
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/ai-assistant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: content }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
       const aiResponse: Message = {
-        content: `I've received your question about "${content}". Here's what I can tell you about PC components related to your query...`,
+        content: data.reply,
         role: 'assistant',
         id: (Date.now() + 1).toString()
       };
       
       setMessages(prev => [...prev, aiResponse]);
+    } catch (err) {
+      console.error('Failed to get AI response:', err);
+      const errorMessage: Message = {
+        content: "Sorry, I encountered an error while processing your request. Please try again.",
+        role: 'assistant',
+        id: (Date.now() + 1).toString()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
