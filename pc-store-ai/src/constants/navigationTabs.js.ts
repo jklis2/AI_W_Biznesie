@@ -1,7 +1,7 @@
 const NAVIGATION_TABS = [
   { id: 1, href: '/categories', label: 'Categories' },
   { id: 2, href: '/ai-assistant', label: 'AI Assistant' },
-  { id: 3, href: '/deals', label: 'Deals' },
+  { id: 3, href: '/products', label: 'Products' },
   { id: 4, href: '/new-arrivals', label: 'New arrivals' },
   { id: 5, href: '/guides', label: 'Guides' },
   { id: 6, href: '/contact', label: 'Contact' },

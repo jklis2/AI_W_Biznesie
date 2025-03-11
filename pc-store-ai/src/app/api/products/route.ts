@@ -5,11 +5,16 @@ import { Product } from '@/models/product';
 // GET all products
 export async function GET() {
   try {
+    console.log('Connecting to database...');
     await connectToDatabase();
-    const products = await Product.find().populate('category subcategory');
+    console.log('Connected to database, fetching products...');
+    const products = await Product.find().lean();
+    console.log(`Found ${products.length} products`);
+    
     return NextResponse.json(products);
   } catch (error) {
-    return NextResponse.json({ message: 'Failed to fetch products', error }, { status: 500 });
+    console.error('Error in GET /api/products:', error);
+    return NextResponse.json({ message: 'Failed to fetch products', error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
