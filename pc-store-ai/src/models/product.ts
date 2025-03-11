@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
 const ProductSchema = new Schema(
   {
@@ -6,7 +6,7 @@ const ProductSchema = new Schema(
     slug: { type: String, required: true, unique: true },
     description: { type: String, required: true },
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
-    subcategory: { type: Schema.Types.ObjectId, ref: "Category", required: false },
+    subcategory: { type: Schema.Types.ObjectId, ref: "Subcategory", required: false },
     brand: { type: String, required: true },
     price: { type: Number, required: true },
     stock: { type: Number, required: true, default: 0 },
