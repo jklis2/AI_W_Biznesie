@@ -3,19 +3,52 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types/product';
+import { toast } from 'react-hot-toast';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const specEntries = Object.entries(product.specifications || {});
   const firstFiveSpecs = specEntries.slice(0, 5);
 
+  const addToCart = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product._id,
+          quantity: 1,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to add to cart' }));
+        throw new Error(errorData.error || 'Failed to add to cart');
+      }
+
+      toast.success('Added to cart');
+    } catch (err) {
+      const error = err as Error;
+      if (error.message.includes('Authentication required')) {
+        toast.error('Please log in to add items to cart');
+      } else {
+        toast.error(error.message);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+    <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
       <div className="relative h-48 bg-gray-200 flex items-center justify-center">
         {product.images && product.images.length > 0 && !imageError ? (
           <Image src={product.images[0]} alt={product.name} fill style={{ objectFit: 'cover' }} className="transition-opacity duration-300" onError={() => setImageError(true)} />
@@ -51,11 +84,14 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="text-lg font-bold">{product.price.toLocaleString()} PLN</p>
 
           <div className="relative">
-            <div className={`transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-              <button className="p-2 rounded-full bg-green-500 hover:bg-green-600 transition-colors" aria-label="Add to cart">
-                <Image src="/icons/addToCart.svg" alt="Add to cart" width={20} height={20} />
-              </button>
-            </div>
+            <button 
+              onClick={addToCart}
+              disabled={isLoading}
+              className={`p-2 rounded-full bg-green-500 hover:bg-green-600 transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+              aria-label="Add to cart"
+            >
+              <Image src="/icons/addToCart.svg" alt="Add to cart" width={20} height={20} />
+            </button>
           </div>
         </div>
       </div>
