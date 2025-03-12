@@ -8,13 +8,16 @@ import PaymentMethod from '@/containers/PaymentMethod';
 import OrderSummary from '@/containers/OrderSummary';
 import { ShippingOptionId } from '@/containers/ShippingMethod';
 
-interface Address {
-  _id: string;
+interface NewAddress {
   street: string;
   houseNumber: string;
   city: string;
   postalCode: string;
   country: string;
+}
+
+interface Address extends NewAddress {
+  _id: string;
 }
 
 interface CartItem {
@@ -91,7 +94,7 @@ export default function Checkout() {
     fetchData();
   }, [router]);
 
-  const handleAddNewAddress = async (newAddress: Omit<Address, '_id'>) => {
+  const handleAddNewAddress = async (newAddress: NewAddress) => {
     try {
       setError(null);
       const response = await fetch("/api/auth/address", {

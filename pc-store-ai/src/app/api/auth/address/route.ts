@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/db';
 import { User } from '@/models/user';
+import { Types } from 'mongoose';
 
 interface JwtPayload {
   userId: string;
@@ -11,6 +12,7 @@ interface JwtPayload {
 }
 
 interface Address {
+  _id?: Types.ObjectId;
   street: string;
   houseNumber: string;
   city: string;
@@ -72,14 +74,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const newAddress = {
-      _id: new Date().getTime().toString(),
-      ...address
-    };
-
-    user.addresses = user.addresses || [];
-    user.addresses.push(newAddress);
+    user.addresses.push(address);
     await user.save();
+
+    const newAddress = user.addresses[user.addresses.length - 1];
 
     return NextResponse.json({ 
       success: true,
@@ -87,6 +85,45 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error adding address:', error);
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}
+
+// DELETE /api/auth/address - Remove address
+export async function DELETE(req: NextRequest) {
+  try {
+    const token = req.cookies.get('token')?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as JwtPayload;
+    const { addressId } = await req.json();
+
+    if (!addressId) {
+      return NextResponse.json({ error: 'Address ID is required' }, { status: 400 });
+    }
+
+    await connectToDatabase();
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    user.addresses = user.addresses.filter((addr: Address) => addr._id?.toString() !== addressId);
+    await user.save();
+
+    return NextResponse.json({ 
+      success: true,
+      message: 'Address deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting address:', error);
     if (error instanceof jwt.JsonWebTokenError) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
