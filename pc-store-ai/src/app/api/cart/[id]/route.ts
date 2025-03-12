@@ -3,26 +3,17 @@ import { connectToDatabase } from '@/lib/db';
 import { Cart, ICartItem } from "@/models/cart";
 import { authenticateUser } from "@/middleware/authMiddleware";
 
-interface CartError extends Error {
-  code?: number;
-}
-
-interface RouteParams {
-  params: { id: string };
-}
-
-export async function PATCH(request: NextRequest, { params }: { params: { id?: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
   try {
-    if (!params?.id) {
-      return NextResponse.json({ error: "Product ID is missing" }, { status: 400 });
-    }
+    const itemId = context.params.id;
 
     const auth = await authenticateUser(request);
     if (auth instanceof NextResponse) return auth;
 
-    const productId = params.id;
     const { quantity } = await request.json();
-
     if (!quantity || quantity < 1) {
       return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
     }
@@ -34,12 +25,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id?: s
       return NextResponse.json({ error: "Cart not found" }, { status: 404 });
     }
 
-    const item = cart.items.find(
-      (item: ICartItem) => item.productId.toString() === productId
-    );
-
+    const item = cart.items.find((item: ICartItem) => item._id.toString() === itemId);
     if (!item) {
-      return NextResponse.json({ error: "Product not found in cart" }, { status: 404 });
+      return NextResponse.json({ error: "Item not found in cart" }, { status: 404 });
     }
 
     item.quantity = quantity;
@@ -47,41 +35,32 @@ export async function PATCH(request: NextRequest, { params }: { params: { id?: s
 
     const updatedCart = await Cart.findById(cart._id).populate('items.productId');
     return NextResponse.json(updatedCart);
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Cart Update Error:", error);
-    return NextResponse.json(
-      { error: "Failed to update cart item" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update cart item" }, { status: 500 });
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
   try {
+    const itemId = context.params.id;
+
     const auth = await authenticateUser(request);
     if (auth instanceof NextResponse) return auth;
-
-    const productId = params.id;
 
     await connectToDatabase();
     
     const cart = await Cart.findOne({ userId: auth.userId });
     if (!cart) {
-      return NextResponse.json(
-        { error: "Cart not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Cart not found" }, { status: 404 });
     }
 
-    const itemIndex = cart.items.findIndex(
-      (item: ICartItem) => item.productId.toString() === productId
-    );
-
+    const itemIndex = cart.items.findIndex((item: ICartItem) => item._id.toString() === itemId);
     if (itemIndex === -1) {
-      return NextResponse.json(
-        { error: "Product not found in cart" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Item not found in cart" }, { status: 404 });
     }
 
     cart.items.splice(itemIndex, 1);
@@ -89,11 +68,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const updatedCart = await Cart.findById(cart._id).populate('items.productId');
     return NextResponse.json(updatedCart);
-  } catch (error: unknown) {
-    const cartError = error as CartError;
-    return NextResponse.json(
-      { error: cartError.message || "Failed to remove cart item" },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error("Cart Delete Error:", error);
+    return NextResponse.json({ error: "Failed to remove item from cart" }, { status: 500 });
   }
 }

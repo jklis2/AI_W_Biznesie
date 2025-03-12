@@ -3,10 +3,6 @@ import { connectToDatabase } from '@/lib/db';
 import { Cart, ICartItem } from "@/models/cart";
 import { authenticateUser } from "@/middleware/authMiddleware";
 
-interface CartError extends Error {
-  code?: number;
-}
-
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticateUser(request);
@@ -27,13 +23,9 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(cart);
-  } catch (error: unknown) {
-    const cartError = error as CartError;
-    console.error("Cart fetch error:", cartError);
-    return NextResponse.json(
-      { error: cartError.message || "Failed to fetch cart" },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error("Cart fetch error:", error);
+    return NextResponse.json({ error: "Failed to fetch cart" }, { status: 500 });
   }
 }
 
@@ -44,11 +36,12 @@ export async function POST(request: NextRequest) {
 
     const { productId, quantity } = await request.json();
 
-    if (!productId || !quantity || quantity < 1) {
-      return NextResponse.json(
-        { error: "Invalid product data" },
-        { status: 400 }
-      );
+    if (!productId || typeof productId !== 'string') {
+      return NextResponse.json({ error: "Product ID is required and must be a string" }, { status: 400 });
+    }
+
+    if (!quantity || typeof quantity !== 'number' || quantity < 1) {
+      return NextResponse.json({ error: "Invalid quantity, must be a positive integer" }, { status: 400 });
     }
 
     await connectToDatabase();
@@ -80,12 +73,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(populatedCart);
-  } catch (error: unknown) {
-    const cartError = error as CartError;
-    console.error("Cart update error:", cartError);
-    return NextResponse.json(
-      { error: cartError.message || "Failed to update cart" },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error("Cart update error:", error);
+    return NextResponse.json({ error: "Failed to update cart" }, { status: 500 });
   }
 }

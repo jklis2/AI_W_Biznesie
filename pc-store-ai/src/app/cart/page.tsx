@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 interface CartItem {
   _id: string;
@@ -25,65 +26,103 @@ interface Cart {
 export default function Cart() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
-
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     try {
-      const response = await fetch('/api/cart');
+      const response = await fetch('/api/cart', {
+        credentials: 'include'
+      });
+
+      if (response.status === 401) {
+        router.push('/auth/login');
+        return;
+      }
+
       if (!response.ok) {
         throw new Error('Failed to fetch cart');
       }
+
       const data = await response.json();
       setCart(data);
+      setError(null);
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to load cart');
+      console.error('Fetch cart error:', error);
+      setError('Failed to load cart');
     } finally {
       setLoading(false);
     }
-  };
-  
-  const updateQuantity = async (productId: string, newQuantity: number) => {
+  }, [router]);
+
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
+  const updateQuantity = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
+
     try {
-      const response = await fetch(`/api/cart/${productId}`, {
+      const response = await fetch(`/api/cart/${itemId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ quantity: newQuantity }),
       });
 
+      if (response.status === 401) {
+        router.push('/auth/login');
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error('Failed to update quantity');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update quantity');
       }
 
       const updatedCart = await response.json();
       setCart(updatedCart);
+      setError(null);
+      toast.success('Quantity updated');
     } catch (error) {
-      console.error(error);
+      console.error('Update quantity error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update quantity');
       toast.error('Failed to update quantity');
     }
   };
 
-  const removeItem = async (productId: string) => {
+  const removeItem = async (itemId: string) => {
+    if (!itemId) {
+      console.error('Invalid item ID');
+      setError('Cannot remove item: Invalid ID');
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/cart/${productId}`, {
+      const response = await fetch(`/api/cart/${itemId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
+      if (response.status === 401) {
+        router.push('/auth/login');
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error('Failed to remove item');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to remove item');
       }
 
       const updatedCart = await response.json();
       setCart(updatedCart);
+      setError(null);
       toast.success('Item removed from cart');
     } catch (error) {
-      console.error(error);
+      console.error('Remove item error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to remove item');
       toast.error('Failed to remove item');
     }
   };
@@ -101,6 +140,19 @@ export default function Cart() {
         <div className="animate-pulse">
           <div className="h-24 bg-gray-200 rounded mb-4"></div>
           <div className="h-24 bg-gray-200 rounded mb-4"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-4">{error}</h2>
+          <Link href="/products" className="text-blue-600 hover:text-blue-800">
+            Continue Shopping
+          </Link>
         </div>
       </div>
     );
@@ -152,8 +204,9 @@ export default function Cart() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => updateQuantity(item.productId._id, item.quantity - 1)}
-                  className="p-1 rounded-full bg-gray-200 hover:bg-gray-300"
+                  onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                  className="p-1 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={item.quantity <= 1}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -161,7 +214,7 @@ export default function Cart() {
                 </button>
                 <span className="w-8 text-center">{item.quantity}</span>
                 <button
-                  onClick={() => updateQuantity(item.productId._id, item.quantity + 1)}
+                  onClick={() => updateQuantity(item._id, item.quantity + 1)}
                   className="p-1 rounded-full bg-gray-200 hover:bg-gray-300"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,7 +224,7 @@ export default function Cart() {
               </div>
 
               <button
-                onClick={() => removeItem(item.productId._id)}
+                onClick={() => removeItem(item._id)}
                 className="text-red-600 hover:text-red-800"
               >
                 Remove
