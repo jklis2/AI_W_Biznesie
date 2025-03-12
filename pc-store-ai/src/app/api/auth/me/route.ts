@@ -21,20 +21,17 @@ export async function GET(req: NextRequest) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as JwtPayload;
     
     await connectToDatabase();
-    const user = await User.findById(decoded.userId).select('-password');
+    const user = await User.findById(decoded.userId)
+      .select('-password')
+      .select('firstName lastName email role addresses');
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json({ 
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role
-      } 
+      success: true,
+      user: user.toJSON()
     });
   } catch (error) {
     console.error('Auth verification error:', error);

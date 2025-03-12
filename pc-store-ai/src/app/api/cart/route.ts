@@ -13,11 +13,23 @@ export async function GET(request: NextRequest) {
     if (auth instanceof NextResponse) return auth;
 
     await connectToDatabase();
-    const cart = await Cart.findOne({ userId: auth.userId }).populate('items.productId');
+    const cart = await Cart.findOne({ userId: auth.userId }).populate({
+      path: 'items.productId',
+      select: '_id name price images'
+    });
 
-    return NextResponse.json(cart || { userId: auth.userId, items: [] });
+    if (!cart) {
+      return NextResponse.json({
+        _id: "",
+        userId: auth.userId,
+        items: []
+      });
+    }
+
+    return NextResponse.json(cart);
   } catch (error: unknown) {
     const cartError = error as CartError;
+    console.error("Cart fetch error:", cartError);
     return NextResponse.json(
       { error: cartError.message || "Failed to fetch cart" },
       { status: 500 }
@@ -62,10 +74,15 @@ export async function POST(request: NextRequest) {
       await cart.save();
     }
 
-    const populatedCart = await Cart.findById(cart._id).populate('items.productId');
+    const populatedCart = await Cart.findById(cart._id).populate({
+      path: 'items.productId',
+      select: '_id name price images'
+    });
+
     return NextResponse.json(populatedCart);
   } catch (error: unknown) {
     const cartError = error as CartError;
+    console.error("Cart update error:", cartError);
     return NextResponse.json(
       { error: cartError.message || "Failed to update cart" },
       { status: 500 }
