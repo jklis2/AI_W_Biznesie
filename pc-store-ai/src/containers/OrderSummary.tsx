@@ -49,22 +49,22 @@ export default function OrderSummary({ cart, selectedShipping }: OrderSummaryPro
               <p className="font-semibold">{item.productId.name}</p>
               <p className="text-gray-600">Qty: {item.quantity}</p>
             </div>
-            <p className="font-semibold">${(item.productId.price * item.quantity).toFixed(2)}</p>
+            <p className="font-semibold">{(item.productId.price * item.quantity).toFixed(2)} PLN</p>
           </div>
         ))}
         
         <div className="space-y-2 pt-4">
           <div className="flex justify-between text-gray-600">
             <span>Subtotal:</span>
-            <span className="font-semibold">${subtotal.toFixed(2)}</span>
+            <span className="font-semibold">{subtotal.toFixed(2)} PLN</span>
           </div>
           <div className="flex justify-between text-gray-600">
             <span>Shipping ({shippingOptions[selectedShipping].label}):</span>
-            <span className="font-semibold">${shipping.toFixed(2)}</span>
+            <span className="font-semibold">{shipping.toFixed(2)} PLN</span>
           </div>
           <div className="flex justify-between text-lg font-bold border-t pt-2">
             <span>Total:</span>
-            <span className="text-green-600">${total.toFixed(2)}</span>
+            <span className="text-green-600">{total.toFixed(2)} PLN</span>
           </div>
         </div>
       </div>

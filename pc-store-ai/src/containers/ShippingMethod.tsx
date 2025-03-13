@@ -39,7 +39,7 @@ export default function ShippingMethod({
                 <p className="text-sm text-gray-500">{option.deliveryTime}</p>
               </div>
             </div>
-            <span className="font-semibold">${option.price.toFixed(2)}</span>
+            <span className="font-semibold">{option.price.toFixed(2)} PLN</span>
           </label>
         ))}
       </div>

@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/db';
 import { User } from '@/models/user';
 import { Types } from 'mongoose';
-
-interface JwtPayload {
-  userId: string;
-  role: string;
-  iat: number;
-  exp: number;
-}
+import { authenticateUser } from '@/middleware/authMiddleware';
 
 interface Address {
   _id?: Types.ObjectId;
@@ -23,16 +16,11 @@ interface Address {
 // GET /api/auth/address - Get user addresses
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as JwtPayload;
+    const auth = await authenticateUser(req);
+    if (auth instanceof NextResponse) return auth;
     
     await connectToDatabase();
-    const user = await User.findById(decoded.userId).select('addresses');
+    const user = await User.findById(auth.userId).select('addresses');
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -44,9 +32,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching addresses:', error);
-    if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -54,13 +39,9 @@ export async function GET(req: NextRequest) {
 // POST /api/auth/address - Add new address
 export async function POST(req: NextRequest) {
   try {
-    const token = req.cookies.get('token')?.value;
+    const auth = await authenticateUser(req);
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as JwtPayload;
     const address = await req.json() as Address;
 
     if (!address.street || !address.houseNumber || !address.city || !address.postalCode || !address.country) {
@@ -68,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     await connectToDatabase();
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(auth.userId);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -85,9 +66,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error adding address:', error);
-    if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
@@ -95,13 +73,9 @@ export async function POST(req: NextRequest) {
 // DELETE /api/auth/address - Remove address
 export async function DELETE(req: NextRequest) {
   try {
-    const token = req.cookies.get('token')?.value;
+    const auth = await authenticateUser(req);
+    if (auth instanceof NextResponse) return auth;
 
-    if (!token) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as JwtPayload;
     const { addressId } = await req.json();
 
     if (!addressId) {
@@ -109,7 +83,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await connectToDatabase();
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(auth.userId);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -124,9 +98,6 @@ export async function DELETE(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error deleting address:', error);
-    if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { createToken } from '@/lib/jwt';
 import { connectToDatabase } from '@/lib/db';
 import { User } from '@/models/user';
 
@@ -68,9 +68,25 @@ async function handleRegister(data: RegisterData) {
       role: 'user',
     });
 
-    const token = jwt.sign({ userId: newUser._id.toString(), role: newUser.role }, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
+    const token = createToken({ 
+      userId: newUser._id.toString(), 
+      email: newUser.email,
+      role: newUser.role 
+    });
 
-    const response = NextResponse.json({ message: 'User registered successfully' }, { status: 201 });
+    const response = NextResponse.json(
+      { 
+        message: 'User registered successfully',
+        user: {
+          id: newUser._id,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          role: newUser.role,
+        }
+      }, 
+      { status: 201 }
+    );
 
     response.cookies.set('token', token, {
       httpOnly: true,
@@ -112,7 +128,11 @@ async function handleLogin(data: LoginData) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = jwt.sign({ userId: user._id.toString(), role: user.role }, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
+    const token = createToken({ 
+      userId: user._id.toString(), 
+      email: user.email,
+      role: user.role 
+    });
 
     const response = NextResponse.json(
       {

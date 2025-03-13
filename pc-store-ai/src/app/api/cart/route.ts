@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
-import { Cart, ICartItem } from "@/models/cart";
-import { authenticateUser } from "@/middleware/authMiddleware";
+import { Cart, ICartItem } from '@/models/cart';
+import { authenticateUser } from '@/middleware/authMiddleware';
 
 export async function GET(request: NextRequest) {
   try {

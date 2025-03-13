@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { verifyToken } from '../lib/jwt';
 import { User } from "@/models/user";
-import { connectToDatabase } from '@/lib/db';
+import { connectToDatabase } from '../lib/db';
 
 interface AuthError extends Error {
   name: string;
@@ -19,9 +19,7 @@ export async function authenticateUser(request: NextRequest) {
       );
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as {
-      userId: string;
-    };
+    const decoded = verifyToken(token);
 
     await connectToDatabase();
     const user = await User.findById(decoded.userId).select("-password");
