@@ -12,11 +12,14 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 export async function POST(req: Request) {
   try {
     const session = await getAuthSession();
+    console.log('Auth session:', session);
+    
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { items, shippingMethod, addressId }: PaymentRequestBody = await req.json();
+    console.log('User ID:', session.user.id);
 
     const lineItems = items.map((item: CartItem) => ({
       price_data: {
@@ -43,6 +46,7 @@ export async function POST(req: Request) {
       },
     });
 
+    console.log('Created Stripe session with metadata:', stripeSession.metadata);
     return NextResponse.json({ sessionId: stripeSession.id });
   } catch (error) {
     console.error('Payment error:', error);
