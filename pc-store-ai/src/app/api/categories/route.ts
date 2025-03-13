@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import { Category } from '@/models/category';
+import '@/models/subcategory';
 
 // GET all categories with subcategories
 export async function GET() {
@@ -10,10 +11,7 @@ export async function GET() {
     return NextResponse.json(categories);
   } catch (error) {
     console.error('Error fetching categories:', error);
-    return NextResponse.json(
-      { message: 'Failed to fetch categories', error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Failed to fetch categories', error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
 }
 
@@ -27,9 +25,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(newCategory, { status: 201 });
   } catch (error) {
     console.error('Error creating category:', error);
-    return NextResponse.json(
-      { message: 'Failed to create category', error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 400 }
-    );
+    return NextResponse.json({ message: 'Failed to create category', error: error instanceof Error ? error.message : 'Unknown error' }, { status: 400 });
   }
 }
