@@ -54,7 +54,7 @@ export default function CategoryList({ onSubcategorySelect, selectedSubcategory 
   };
 
   return (
-    <div>
+    <div className="max-w-md w-1/6">
       <h1 className="text-2xl font-bold mb-4 text-neutral-900">Category</h1>
       <ul className="space-y-2">
         <li

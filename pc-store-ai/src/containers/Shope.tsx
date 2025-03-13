@@ -135,9 +135,7 @@ export default function Shope() {
         </div>
       </div>
       <div className="w-full mt-5 gap-5 flex">
-        <div className="max-w-md w-1/6">
-          <CategoryList onSubcategorySelect={setSelectedSubcategory} selectedSubcategory={selectedSubcategory} />
-        </div>
+        <CategoryList onSubcategorySelect={setSelectedSubcategory} selectedSubcategory={selectedSubcategory} />
         <div className="flex-1 grid grid-cols-3 gap-4">
           {currentProducts.map(product => (
             <ProductCard key={product._id} product={product} />
