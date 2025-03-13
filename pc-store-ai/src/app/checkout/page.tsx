@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { loadStripe } from '@stripe/stripe-js';
 import ContactInfo from '@/containers/ContactInfo';
 import AddressSelection from '@/containers/AddressSelection';
 import ShippingMethod from '@/containers/ShippingMethod';
@@ -51,6 +52,9 @@ export default function Checkout() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
   useEffect(() => {
     async function fetchData() {
@@ -123,6 +127,67 @@ export default function Checkout() {
     }
   };
 
+  const handlePayment = async () => {
+    try {
+      setIsProcessingPayment(true);
+      setError(null);
+
+      if (!selectedAddress) {
+        setError('Proszę wybrać adres dostawy');
+        return;
+      }
+
+      if (!cart?.items.length) {
+        setError('Twój koszyk jest pusty');
+        return;
+      }
+
+      const totalAmount = cart.items.reduce((sum, item) => {
+        return sum + (item.productId.price * item.quantity);
+      }, 0);
+
+      const shippingCost = selectedShipping === 'express' ? 20 : 12;
+      const finalAmount = totalAmount + shippingCost;
+
+      const response = await fetch('/api/payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: cart.items,
+          totalAmount: finalAmount,
+          shippingMethod: selectedShipping,
+          addressId: selectedAddress,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Problem z inicjalizacją płatności');
+      }
+
+      const { sessionId } = await response.json();
+      const stripe = await stripePromise;
+      
+      if (!stripe) {
+        throw new Error('Problem z załadowaniem Stripe');
+      }
+
+      const { error } = await stripe.redirectToCheckout({
+        sessionId,
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Wystąpił błąd podczas przetwarzania płatności');
+      console.error('Payment error:', err);
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6 text-center">
@@ -169,6 +234,22 @@ export default function Checkout() {
           cart={cart?.items || []}
           selectedShipping={selectedShipping}
         />
+        {error && (
+          <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-md">
+            {error}
+          </div>
+        )}
+        <button
+          onClick={handlePayment}
+          disabled={isProcessingPayment || !cart?.items.length}
+          className={`mt-6 w-full py-3 px-4 rounded-md text-white font-medium
+            ${isProcessingPayment || !cart?.items.length
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+            } transition-colors`}
+        >
+          {isProcessingPayment ? 'Przetwarzanie...' : 'Zapłać teraz'}
+        </button>
       </div>
     </div>
   );
