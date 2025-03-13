@@ -15,6 +15,8 @@ export default function Shope() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 9;
 
   useEffect(() => {
     async function fetchProducts() {
@@ -32,15 +34,6 @@ export default function Shope() {
   }, []);
 
   useEffect(() => {
-    if (selectedSubcategory) {
-      const filtered = products.filter(product => product.subcategory === selectedSubcategory);
-      setFilteredProducts(filtered);
-    } else {
-      setFilteredProducts(products);
-    }
-  }, [selectedSubcategory, products]);
-
-  useEffect(() => {
     let filtered = products;
 
     if (selectedSubcategory) {
@@ -52,7 +45,75 @@ export default function Shope() {
     }
 
     setFilteredProducts(filtered);
+    setCurrentPage(1);
   }, [products, selectedSubcategory, searchQuery]);
+
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 3;
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      if (currentPage <= 2) {
+        pageNumbers.push(1, 2, 'input', totalPages);
+      } else if (currentPage >= totalPages - 1) {
+        pageNumbers.push(1, 'input', totalPages - 1, totalPages);
+      } else {
+        pageNumbers.push(1, 'input', currentPage - 1, currentPage, currentPage + 1, 'input', totalPages);
+      }
+    }
+
+    return pageNumbers.map((number, index) =>
+      typeof number === 'number' ? (
+        <button
+          key={index}
+          onClick={() => paginate(number)}
+          className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === number ? 'bg-black text-white' : 'bg-gray-200'} rounded-full`}>
+          {number}
+        </button>
+      ) : (
+        <input
+          key={index}
+          type="text"
+          className="w-10 h-10 flex items-center justify-center mx-1 border border-gray-300 rounded-full text-center bg-gray-200 text-black placeholder-gray-400"
+          placeholder="..."
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              const value = (e.target as HTMLInputElement).value;
+              const pageNumber = Number(value);
+
+              if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+                paginate(pageNumber);
+              }
+            }
+          }}
+          onBlur={e => {
+            const value = (e.target as HTMLInputElement).value;
+            const pageNumber = Number(value);
+
+            if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+              paginate(pageNumber);
+            }
+          }}
+          onInput={e => {
+            const input = e.target as HTMLInputElement;
+            input.value = input.value.replace(/[^0-9]/g, '');
+          }}
+        />
+      ),
+    );
+  };
 
   return (
     <div className="relative flex flex-col items-center w-4/5 mx-auto rounded-t-lg -mt-10 bg-white">
@@ -81,10 +142,27 @@ export default function Shope() {
           <CategoryList onSubcategorySelect={setSelectedSubcategory} selectedSubcategory={selectedSubcategory} />
         </div>
         <div className="flex-1 grid grid-cols-3 gap-4">
-          {filteredProducts.map(product => (
+          {currentProducts.map(product => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
+      </div>
+      <div className="flex justify-end mt-5 items-center w-full">
+        <button
+          onClick={() => paginate(currentPage - 1)}
+          className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-black text-white'} rounded-full`}
+          disabled={currentPage === 1}>
+          &lt;
+        </button>
+
+        {renderPageNumbers()}
+
+        <button
+          onClick={() => paginate(currentPage + 1)}
+          className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === totalPages ? 'bg-gray-200 cursor-not-allowed' : 'bg-black text-white'} rounded-full`}
+          disabled={currentPage === totalPages}>
+          &gt;
+        </button>
       </div>
     </div>
   );
