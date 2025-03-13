@@ -9,7 +9,11 @@ export async function GET() {
     const categories = await Category.find().populate('subcategories');
     return NextResponse.json(categories);
   } catch (error) {
-    return NextResponse.json({ message: 'Failed to fetch categories', error }, { status: 500 });
+    console.error('Error fetching categories:', error);
+    return NextResponse.json(
+      { message: 'Failed to fetch categories', error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }
 
@@ -22,6 +26,10 @@ export async function POST(req: NextRequest) {
     await newCategory.save();
     return NextResponse.json(newCategory, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: 'Failed to create category', error }, { status: 400 });
+    console.error('Error creating category:', error);
+    return NextResponse.json(
+      { message: 'Failed to create category', error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 400 }
+    );
   }
 }

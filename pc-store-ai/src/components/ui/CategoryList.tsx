@@ -3,12 +3,17 @@ import { useState, useEffect } from 'react';
 interface Subcategory {
   _id: string;
   name: string;
+  slug: string;
+  category: string;
+  __v: number;
 }
 
 interface Category {
   _id: string;
   name: string;
-  subcategories?: Subcategory[];
+  slug: string;
+  subcategories: Subcategory[];
+  __v: number;
 }
 
 interface Props {
@@ -23,9 +28,17 @@ export default function CategoryList({ onSubcategorySelect, selectedSubcategory 
 
   useEffect(() => {
     async function fetchCategories() {
-      const response = await fetch('/api/categories');
-      const data: Category[] = await response.json();
-      setCategories(data.map(category => ({ ...category, subcategories: category.subcategories || [] })));
+      try {
+        const response = await fetch('/api/categories');
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setCategories([]);
+      }
     }
 
     fetchCategories();
@@ -76,7 +89,7 @@ export default function CategoryList({ onSubcategorySelect, selectedSubcategory 
                 {category.subcategories.map((subcategory, index) => (
                   <li
                     key={subcategory._id}
-                    className={`relative cursor-pointer p-2 text-neutral-600  ${selectedSubcategory === subcategory._id ? 'font-bold' : ''}`}
+                    className={`relative cursor-pointer p-2 text-neutral-600 ${selectedSubcategory === subcategory._id ? 'font-bold' : ''}`}
                     onClick={() => handleSubcategoryClick(subcategory._id, category._id)}>
                     <span
                       className={`absolute left-[-16px] top-[50%] h-[1px] w-[16px] bg-gray-300 ${
