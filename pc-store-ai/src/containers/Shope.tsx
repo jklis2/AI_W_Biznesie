@@ -1,7 +1,44 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import CategoryList from '@/components/ui/CategoryList';
 import ProductCard from '@/components/ui/ProductCard';
 
+interface Product {
+  _id: string;
+  name: string;
+  subcategory?: string;
+}
+
 export default function Shope() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch('/api/products');
+        if (!response.ok) throw new Error('Failed to fetch products');
+        const data: Product[] = await response.json();
+        setProducts(data);
+        setFilteredProducts(data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (selectedSubcategory) {
+      const filtered = products.filter(product => product.subcategory === selectedSubcategory);
+      setFilteredProducts(filtered);
+    } else {
+      setFilteredProducts(products);
+    }
+  }, [selectedSubcategory, products]);
+
   return (
     <div className="relative flex flex-col items-center w-4/5 mx-auto rounded-t-lg -mt-10 bg-white">
       <div className="flex items-center justify-between py-5 px-5 w-full">
@@ -14,13 +51,18 @@ export default function Shope() {
           </svg>
           <input type="text" placeholder="Search on Stuffuss" className="w-full p-3 pl-10 border border-gray-300 rounded-full placeholder-gray-500" />
           <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center">
-            <button className="bg-black text-white px-4 py-1.5 rounded-full">Search</button>
+            <button className="bg-black text-white px-4 py-1 rounded-full">Search</button>
           </div>
         </div>
       </div>
-      <div className="w-full mt-5 flex">
+      <div className="w-full mt-5 gap-5 flex">
         <div className="max-w-md w-1/6">
-          <CategoryList />
+          <CategoryList onSubcategorySelect={setSelectedSubcategory} selectedSubcategory={selectedSubcategory} />
+        </div>
+        <div className="flex-1 grid grid-cols-3 gap-4">
+          {filteredProducts.map(product => (
+            <ProductCard key={product._id} product={product} />
+          ))}
         </div>
       </div>
     </div>
