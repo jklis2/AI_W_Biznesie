@@ -8,6 +8,15 @@ interface Product {
   _id: string;
   name: string;
   subcategory?: string;
+  slug: string;
+  description: string;
+  category: string;
+  brand: string;
+  price: number;
+  stock: number;
+  imageUrl: string;
+  images: string[];
+  specifications: Record<string, string | number | boolean>;
 }
 
 export default function Shope() {
