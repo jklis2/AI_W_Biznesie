@@ -30,6 +30,8 @@ export default function Cart() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
   const fetchCart = useCallback(async () => {
     try {
       const response = await fetch('/api/cart', {
@@ -135,6 +137,13 @@ export default function Cart() {
     }, 0);
   };
 
+  const handleImageError = (itemId: string) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [itemId]: true,
+    }));
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -185,16 +194,27 @@ export default function Cart() {
           {cart.items.map(item => (
             <div key={item._id} className="flex items-center bg-white p-4 rounded-lg shadow">
               <div className="relative h-24 w-24 bg-gray-100 rounded flex items-center justify-center">
-                {item.productId?.images?.[0] ? (
-                  <Image 
+                {item.productId?.images?.[0] && !imageErrors[item._id] ? (
+                  <Image
                     src={item.productId.images[0]}
-                    alt={item.productId?.name}
-                    fill 
-                    style={{ objectFit: 'contain' }} 
-                    className="rounded" 
+                    alt={item.productId?.name || 'Product image'}
+                    width={96}
+                    height={96}
+                    className="object-contain rounded"
+                    onError={() => handleImageError(item._id)}
                   />
                 ) : (
-                  <span className="text-sm text-gray-400">No photo</span>
+                  <div className="text-gray-500 text-center flex flex-col items-center justify-center h-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <span className="text-xs">No photo</span>
+                  </div>
                 )}
               </div>
 
