@@ -68,7 +68,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
 
       <div className="p-4">
-        <Link href={`/products/${product.slug}`}>
+        <Link href={`/products/${product._id}`}>
           <h3 className="text-lg font-semibold mb-2 hover:text-blue-600 transition-colors">{product.name}</h3>
         </Link>
 
@@ -84,12 +84,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="text-lg font-bold">{product.price.toLocaleString()} PLN</p>
 
           <div className="relative">
-            <button 
+            <button
               onClick={addToCart}
               disabled={isLoading}
-              className={`p-2 rounded-full bg-green-500 hover:bg-green-600 transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-              aria-label="Add to cart"
-            >
+              className={`p-2 rounded-full bg-green-500 hover:bg-green-600 transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label="Add to cart">
               <Image src="/icons/addToCart.svg" alt="Add to cart" width={20} height={20} />
             </button>
           </div>
