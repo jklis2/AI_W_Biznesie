@@ -10,10 +10,10 @@ interface DropdownTab extends NavigationTab {
 }
 
 const NAVIGATION_TABS: NavigationTab[] = [
-  { id: 1, href: '/ai-assistant', label: 'AI Assistant' },
-  { id: 2, href: '/guides', label: 'Guides' },
-  { id: 3, href: '/contact', label: 'Contact' },
-  { id: 4, href: '/products', label: 'Products' },
+  { id: 1, href: '/', label: 'Products' },
+  { id: 2, href: '/ai-assistant', label: 'AI Assistant' },
+  { id: 3, href: '/guides', label: 'Guides' },
+  { id: 4, href: '/contact', label: 'Contact' },
 ];
 
 const DROPDOWN_TABS: DropdownTab[] = [
