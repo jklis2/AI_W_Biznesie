@@ -3,12 +3,9 @@ import { connectToDatabase } from '@/lib/db';
 import { Product } from '@/models/product';
 import mongoose from 'mongoose';
 
-export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
 
     await connectToDatabase();
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -27,12 +24,9 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
 
     await connectToDatabase();
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -52,12 +46,9 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
 
     await connectToDatabase();
     if (!mongoose.Types.ObjectId.isValid(id)) {
