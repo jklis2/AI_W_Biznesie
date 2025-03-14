@@ -65,17 +65,17 @@ export default function SuccessPage() {
             <CheckCircle className="w-16 h-16 text-green-500" />
           </div>
           <h1 className="text-2xl font-bold mb-2">
-            {verificationStatus === 'success' ? 'Płatność zakończona sukcesem!' : verificationStatus === 'error' ? 'Wystąpił błąd podczas weryfikacji płatności' : 'Weryfikacja płatności...'}
+            {verificationStatus === 'success' ? 'Payment completed successfully!' : verificationStatus === 'error' ? 'An error occurred during payment verification' : 'Payment verification...'}
           </h1>
           <p className="text-gray-600 mb-4">
             {verificationStatus === 'success'
-              ? 'Dziękujemy za zakupy. Twoje zamówienie zostało przyjęte do realizacji.'
+              ? 'Thank you for your purchase. Your order has been accepted for processing.'
               : verificationStatus === 'error'
-                ? 'Prosimy o kontakt z obsługą sklepu.'
-                : 'Proszę czekać...'}
+                ? 'Please contact store support.'
+                : 'Please wait...'}
           </p>
           <Link href="/my-orders" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
-            Wróć do strony głównej
+            Return to My Orders
           </Link>
         </div>
       </div>

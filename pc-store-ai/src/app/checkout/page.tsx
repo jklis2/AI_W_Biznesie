@@ -134,12 +134,12 @@ export default function Checkout() {
       setError(null);
 
       if (!selectedAddress) {
-        setError('Proszę wybrać adres dostawy');
+        setError('Please select a shipping address');
         return;
       }
 
       if (!cart?.items.length) {
-        setError('Twój koszyk jest pusty');
+        setError('Your cart is empty');
         return;
       }
 
@@ -164,14 +164,14 @@ export default function Checkout() {
       });
 
       if (!response.ok) {
-        throw new Error('Problem z inicjalizacją płatności');
+        throw new Error('Problem with payment initialization');
       }
 
       const { sessionId } = await response.json();
       const stripe = await stripePromise;
 
       if (!stripe) {
-        throw new Error('Problem z załadowaniem Stripe');
+        throw new Error('Problem with Stripe loading');
       }
 
       const { error } = await stripe.redirectToCheckout({
@@ -182,7 +182,7 @@ export default function Checkout() {
         throw error;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Wystąpił błąd podczas przetwarzania płatności');
+      setError(err instanceof Error ? err.message : 'An error occurred during payment processing');
       console.error('Payment error:', err);
     } finally {
       setIsProcessingPayment(false);
@@ -229,7 +229,7 @@ export default function Checkout() {
             disabled={isProcessingPayment || !cart?.items.length}
             className={`mt-6 w-full py-3 px-4 rounded-md text-white font-medium
             ${isProcessingPayment || !cart?.items.length ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} transition-colors`}>
-            {isProcessingPayment ? 'Przetwarzanie...' : 'Zapłać teraz'}
+            {isProcessingPayment ? 'Processing...' : 'Pay Now'}
           </button>
         </div>
       </div>

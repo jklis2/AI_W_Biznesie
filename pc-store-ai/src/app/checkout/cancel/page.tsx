@@ -10,10 +10,10 @@ export default function CancelPage() {
           <div className="flex justify-center mb-4">
             <XCircle className="w-16 h-16 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Płatność została anulowana</h1>
-          <p className="text-gray-600 mb-4">Twoja płatność została anulowana. Możesz spróbować ponownie lub wrócić później.</p>
+          <h1 className="text-2xl font-bold mb-2">Payment has been canceled</h1>
+          <p className="text-gray-600 mb-4">Your payment has been canceled. You can try again or return later.</p>
           <Link href="/checkout" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
-            Wróć do koszyka
+            Return to Checkout
           </Link>
         </div>
       </div>

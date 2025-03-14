@@ -63,7 +63,7 @@ export default function MyOrders() {
             <h3 className="text-xl font-medium text-gray-700 mb-2">No orders found</h3>
             <p className="text-gray-500 mb-4">You haven&apos;t placed any orders yet.</p>
             <button 
-              onClick={() => router.push('/products')}
+              onClick={() => router.push('/')}
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
             >
               Start Shopping
