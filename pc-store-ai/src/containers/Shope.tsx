@@ -25,17 +25,22 @@ export default function Shope() {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<boolean>(false);
   const productsPerPage = 9;
 
   useEffect(() => {
     async function fetchProducts() {
+      setLoading(true);
       try {
         const response = await fetch('/api/products');
         if (!response.ok) throw new Error('Failed to fetch products');
         const data: Product[] = await response.json();
         setProducts(data);
         setFilteredProducts(data);
+        setLoading(false);
       } catch (error) {
+        setError(true);
         console.error(error);
       }
     }
@@ -122,7 +127,7 @@ export default function Shope() {
   };
 
   return (
-    <div className="relative flex flex-col items-center w-4/5 mx-auto rounded-t-lg -mt-10 bg-white">
+    <div className="relative flex flex-col items-center w-4/5 mx-auto rounded-t-lg -mt-10 mb-5 bg-white">
       <div className="flex items-center justify-between py-5 px-5 w-full">
         <h1 className="text-4xl font-bold">Give All You Need</h1>
         <div className="relative flex items-center w-full max-w-md ml-4">
@@ -139,12 +144,15 @@ export default function Shope() {
             onChange={e => setSearchQuery(e.target.value)}
           />
           <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center">
-            <button className="bg-black text-white px-4 py-1 rounded-full">Search</button>
+            <button className="bg-black text-white px-4 py-1 rounded-full cursor-pointer">Search</button>
           </div>
         </div>
       </div>
-      <div className="w-full mt-5 gap-5 flex">
+      <div className="w-full mt-5 p-5 gap-5 flex">
         <CategoryList onSubcategorySelect={setSelectedSubcategory} selectedSubcategory={selectedSubcategory} />
+        {/*Todo: Improve ui for displaying*/}
+        {loading && <p>Loading...</p>}
+        {error && <p>An error occurs!</p>}
         <div className="flex-1 grid grid-cols-3 gap-4">
           {currentProducts.map(product => (
             <ProductCard key={product._id} product={product} />

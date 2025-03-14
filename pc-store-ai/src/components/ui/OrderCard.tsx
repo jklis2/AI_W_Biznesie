@@ -20,10 +20,10 @@ export default function OrderCard({ _id, status, totalAmount, items, createdAt, 
   // Format the date
   const orderDate = new Date(createdAt);
   const formattedDate = format(orderDate, 'dd MMM yyyy, HH:mm');
-  
+
   // Get status color
   const getStatusColor = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'PAID':
         return 'bg-green-100 text-green-800';
       case 'PENDING':
@@ -40,16 +40,18 @@ export default function OrderCard({ _id, status, totalAmount, items, createdAt, 
       {/* Order header */}
       <div className="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap justify-between items-center">
         <div>
-          <p className="text-sm text-gray-500">Order ID: <span className="font-medium text-gray-700">{_id.substring(0, 8)}...</span></p>
-          <p className="text-sm text-gray-500">Placed on: <span className="font-medium text-gray-700">{formattedDate}</span></p>
+          <p className="text-sm text-gray-500">
+            Order ID: <span className="font-medium text-gray-700">{_id.substring(0, 8)}...</span>
+          </p>
+          <p className="text-sm text-gray-500">
+            Placed on: <span className="font-medium text-gray-700">{formattedDate}</span>
+          </p>
         </div>
         <div>
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
-            {status}
-          </span>
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>{status}</span>
         </div>
       </div>
-      
+
       {/* Order items */}
       <div className="p-4">
         <h3 className="text-lg font-semibold mb-2">Items</h3>
@@ -65,7 +67,7 @@ export default function OrderCard({ _id, status, totalAmount, items, createdAt, 
           ))}
         </div>
       </div>
-      
+
       {/* Order summary */}
       <div className="p-4 bg-gray-50 border-t border-gray-200">
         <div className="flex justify-between items-center mb-2">

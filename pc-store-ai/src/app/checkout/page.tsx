@@ -228,7 +228,7 @@ export default function Checkout() {
             onClick={handlePayment}
             disabled={isProcessingPayment || !cart?.items.length}
             className={`mt-6 w-full py-3 px-4 rounded-md text-white font-medium
-            ${isProcessingPayment || !cart?.items.length ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} transition-colors`}>
+            ${isProcessingPayment || !cart?.items.length ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-slate-800'} transition-colors hover:cursor-pointer`}>
             {isProcessingPayment ? 'Processing...' : 'Pay Now'}
           </button>
         </div>

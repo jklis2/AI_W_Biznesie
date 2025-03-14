@@ -1,4 +1,4 @@
-"use client"
+'use client';
 import PageHeader from '@/components/ui/PageHeader';
 import Input from '@/components/ui/Input';
 import { useState, FormEvent } from 'react';
@@ -8,7 +8,7 @@ export default function Contact() {
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -38,52 +38,42 @@ export default function Contact() {
           <p className="mt-2 text-gray-600">Have a question? We&apos;d love to hear from you.</p>
         </div>
       </PageHeader>
-      
+
       <div className="max-w-2xl mx-auto py-8 px-4">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Input
-            label="Name"
-            name="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            error={errors.name}
-            placeholder="Your name"
-          />
-          
+          <Input label="Name" name="name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} error={errors.name} placeholder="Your name" />
+
           <Input
             label="Email"
             name="email"
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={e => setFormData({ ...formData, email: e.target.value })}
             error={errors.email}
             placeholder="your.email@example.com"
           />
-          
+
           <Input
             label="Subject"
             name="subject"
             value={formData.subject}
-            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+            onChange={e => setFormData({ ...formData, subject: e.target.value })}
             error={errors.subject}
             placeholder="What is this about?"
           />
-          
+
           <Input
             label="Message"
             name="message"
             variant="textarea"
             rows={4}
             value={formData.message}
-            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+            onChange={e => setFormData({ ...formData, message: e.target.value })}
             error={errors.message}
             placeholder="Your message"
           />
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200"
-          >
+          <button type="submit" className="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-neutral-800 transition-colors duration-200 hover:cursor-pointer">
             Send Message
           </button>
         </form>

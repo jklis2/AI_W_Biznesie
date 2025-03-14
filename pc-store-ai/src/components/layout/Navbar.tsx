@@ -78,42 +78,38 @@ export default function Navbar() {
           id: lastTab.id,
           href: '#',
           label: 'Logout',
-          onClick: handleLogout
+          onClick: handleLogout,
         });
       }
     }
-    
-    return tabs.map(({ id, href, label, onClick }: DropdownTab) => (
+
+    return tabs.map(({ id, href, label, onClick }: DropdownTab) =>
       onClick ? (
-        <button 
-          key={id} 
-          onClick={onClick} 
-          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-        >
+        <button key={id} onClick={onClick} className="block w-full text-left px-4 py-2 hover:bg-gray-100">
           {label}
         </button>
       ) : (
         <Link className="block px-4 py-2 hover:bg-gray-100" key={id} href={href}>
           {label}
         </Link>
-      )
-    ));
+      ),
+    );
   };
 
   return (
     <nav className="bg-white relative text-white p-5 rounded-b-lg w-4/5 mx-auto">
-      <div className="container mx-auto flex items-center justify-between">
+      <div className="w-full mx-auto flex items-center justify-between">
         <Link href="/" className="text-xl font-semibold text-neutral-900">
           PC Store AI
         </Link>
         <div className="hidden md:flex space-x-6">{renderNavigationTabs()}</div>
-        
+
         {/* User Dropdown or Login Button */}
         <div className="relative">
-          {!loading && (
-            user ? (
+          {!loading &&
+            (user ? (
               <>
-                <button onClick={toggleDropdown} className="flex items-center space-x-2">
+                <button onClick={toggleDropdown} className="flex items-center space-x-2 cursor-pointer">
                   <span className="text-gray-800">{`${user.firstName} ${user.lastName}`}</span>
                   <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,18 +117,13 @@ export default function Navbar() {
                     </svg>
                   </div>
                 </button>
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md border border-gray-300 shadow-2xl py-1 text-gray-800">
-                    {renderDropdownTabs()}
-                  </div>
-                )}
+                {isDropdownOpen && <div className="absolute right-0 mt-2 w-48 bg-white rounded-md border border-gray-300 shadow-2xl py-1 text-gray-800">{renderDropdownTabs()}</div>}
               </>
             ) : (
-              <Link href="/auth/login" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+              <Link href="/auth/login" className="px-4 py-2 bg-black text-white rounded-md hover:bg-slate-800 hover:cursor-pointer transition">
                 Login
               </Link>
-            )
-          )}
+            ))}
         </div>
       </div>
     </nav>

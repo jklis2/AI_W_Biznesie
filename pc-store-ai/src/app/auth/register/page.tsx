@@ -28,7 +28,7 @@ export default function Register() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -75,9 +75,7 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
             <Link href="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
@@ -93,7 +91,9 @@ export default function Register() {
           )}
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="firstName" className="sr-only">First Name</label>
+              <label htmlFor="firstName" className="sr-only">
+                First Name
+              </label>
               <input
                 id="firstName"
                 name="firstName"
@@ -106,7 +106,9 @@ export default function Register() {
               />
             </div>
             <div>
-              <label htmlFor="lastName" className="sr-only">Last Name</label>
+              <label htmlFor="lastName" className="sr-only">
+                Last Name
+              </label>
               <input
                 id="lastName"
                 name="lastName"
@@ -119,7 +121,9 @@ export default function Register() {
               />
             </div>
             <div>
-              <label htmlFor="email" className="sr-only">Email address</label>
+              <label htmlFor="email" className="sr-only">
+                Email address
+              </label>
               <input
                 id="email"
                 name="email"
@@ -133,7 +137,9 @@ export default function Register() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">Password</label>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
               <input
                 id="password"
                 name="password"
@@ -148,7 +154,9 @@ export default function Register() {
               />
             </div>
             <div>
-              <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
+              <label htmlFor="confirmPassword" className="sr-only">
+                Confirm Password
+              </label>
               <input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -169,9 +177,8 @@ export default function Register() {
               type="submit"
               disabled={loading}
               className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-                loading ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'
-              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
-            >
+                loading ? 'bg-black' : 'bg-black hover:bg-neutral-800 hover:cursor-pointer'
+              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-800`}>
               {loading ? 'Creating account...' : 'Create account'}
             </button>
           </div>

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types/product';
-import { toast } from 'react-hot-toast';
+import { toast, Toaster } from 'react-hot-toast';
 
 interface ProductCardProps {
   product: Product;
@@ -87,12 +87,13 @@ export default function ProductCard({ product }: ProductCardProps) {
             <button
               onClick={addToCart}
               disabled={isLoading}
-              className={`p-2 rounded-full bg-green-500 hover:bg-green-600 transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`p-2 rounded-full border-black border-2 text-white hover:bg-neutral-200 transition-colors cursor-pointer ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Add to cart">
-              <Image src="/icons/addToCart.svg" alt="Add to cart" width={20} height={20} />
+              <Image src="/icons/addToCart.svg" alt="Add to cart" width={25} height={25} />
             </button>
           </div>
         </div>
+        <Toaster position="bottom-right" />
       </div>
     </div>
   );

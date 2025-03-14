@@ -187,7 +187,7 @@ export default function Cart() {
 
   return (
     <PageHeader backgroundImage="/headerBackgrounds/home.jpg" title="Cart">
-      <div className="container mx-auto p-6">
+      <div className="w-full mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6">Shopping Cart</h1>
 
         <div className="space-y-4">
@@ -250,7 +250,7 @@ export default function Cart() {
         </div>
 
         <div className="mt-8 flex justify-between items-center">
-          <Link href="/checkout" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+          <Link href="/checkout" className="bg-black text-white px-6 py-3 rounded-lg hover:bg-neutral-800 transition-colors">
             Proceed to Checkout
           </Link>
           <div className="text-xl font-semibold">Total: {calculateTotal().toFixed(2).replace('.', ',')} PLN</div>
