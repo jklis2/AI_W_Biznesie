@@ -74,7 +74,7 @@ export default function SuccessPage() {
                 ? 'Prosimy o kontakt z obsługą sklepu.'
                 : 'Proszę czekać...'}
           </p>
-          <Link href="/" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
+          <Link href="/my-orders" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
             Wróć do strony głównej
           </Link>
         </div>
