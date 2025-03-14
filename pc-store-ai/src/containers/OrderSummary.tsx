@@ -18,7 +18,7 @@ interface OrderSummaryProps {
 }
 
 export default function OrderSummary({ cart, selectedShipping }: OrderSummaryProps) {
-  const subtotal = cart.reduce((acc, item) => acc + item.productId.price * item.quantity, 0);
+  const subtotal = cart.reduce((acc, item) => acc + (item.productId ? item.productId.price * item.quantity : 0), 0);
   const shipping = shippingOptions[selectedShipping].price;
   const total = subtotal + shipping;
 
@@ -36,20 +36,20 @@ export default function OrderSummary({ cart, selectedShipping }: OrderSummaryPro
     <CheckoutCard title="Order Summary">
       <div className="space-y-4">
         {cart.map((item) => (
-          <div key={item.productId._id} className="flex items-center space-x-4 border-b pb-4">
+          <div key={item.productId?._id} className="flex items-center space-x-4 border-b pb-4">
             <div className="relative w-16 h-16">
               <Image 
-                src={item.productId.images[0]} 
-                alt={item.productId.name} 
+                src={item.productId?.images[0]} 
+                alt={item.productId?.name} 
                 fill 
                 className="object-cover rounded-md"
               />
             </div>
             <div className="flex-grow">
-              <p className="font-semibold">{item.productId.name}</p>
+              <p className="font-semibold">{item.productId?.name}</p>
               <p className="text-gray-600">Qty: {item.quantity}</p>
             </div>
-            <p className="font-semibold">{(item.productId.price * item.quantity).toFixed(2)} PLN</p>
+            <p className="font-semibold">{(item.productId?.price * item.quantity).toFixed(2)} PLN</p>
           </div>
         ))}
         
