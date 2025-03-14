@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Hero from '@/containers/Hero';
+import { toast } from 'react-hot-toast';
 
 interface Category {
   _id: string;
@@ -43,6 +44,7 @@ const ProductPage = () => {
   const [product, setProduct] = useState<ProductType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -69,6 +71,40 @@ const ProductPage = () => {
       fetchProduct();
     }
   }, [id]);
+
+  const addToCart = async () => {
+    if (!product) return;
+
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          quantity: 1,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to add to cart' }));
+        throw new Error(errorData.error || 'Failed to add to cart');
+      }
+
+      toast.success('Added to cart');
+    } catch (err) {
+      const error = err as Error;
+      if (error.message.includes('Authentication required')) {
+        toast.error('Please log in to add items to cart');
+      } else {
+        toast.error(error.message);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -114,7 +150,7 @@ const ProductPage = () => {
 
             <p className="text-gray-600">{product.description}</p>
 
-            <div className="text-2xl font-bold text-blue-600">${product.price.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-blue-600">{product.price.toFixed(2)} PLN</div>
 
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">Specifications</h2>
@@ -132,8 +168,11 @@ const ProductPage = () => {
               Stock: <span className={product.stock > 0 ? 'text-green-500' : 'text-red-500'}>{product.stock > 0 ? `${product.stock} units available` : 'Out of stock'}</span>
             </div>
 
-            <button className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400" disabled={product.stock === 0}>
-              {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+            <button
+              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+              disabled={product.stock === 0 || isLoading}
+              onClick={addToCart}>
+              {isLoading ? 'Adding...' : product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
             </button>
           </div>
         </div>
