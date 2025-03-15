@@ -90,7 +90,10 @@ export default function Shope() {
 
     return pageNumbers.map((number, index) =>
       typeof number === 'number' ? (
-        <button key={index} onClick={() => paginate(number)} className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === number ? 'bg-black text-white' : 'bg-gray-200'} rounded-md`}>
+        <button
+          key={index}
+          onClick={() => paginate(number)}
+          className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === number ? 'bg-black text-white' : 'bg-gray-200'} hover:cursor-pointer rounded-md`}>
           {number}
         </button>
       ) : (
@@ -162,7 +165,7 @@ export default function Shope() {
       <div className="flex justify-end mt-5 items-center w-full">
         <button
           onClick={() => paginate(currentPage - 1)}
-          className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-black text-white'} rounded-md`}
+          className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-black text-white'} hover:cursor-pointer rounded-md`}
           disabled={currentPage === 1}>
           &lt;
         </button>
@@ -171,7 +174,7 @@ export default function Shope() {
 
         <button
           onClick={() => paginate(currentPage + 1)}
-          className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === totalPages ? 'bg-gray-200 cursor-not-allowed' : 'bg-black text-white'} rounded-md`}
+          className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === totalPages ? 'bg-gray-200 cursor-not-allowed' : 'bg-black text-white'} hover:cursor-pointer rounded-md`}
           disabled={currentPage === totalPages}>
           &gt;
         </button>
