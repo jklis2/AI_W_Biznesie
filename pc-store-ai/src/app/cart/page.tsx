@@ -161,7 +161,7 @@ export default function Cart() {
         <div className="container mx-auto p-6">
           <div className="text-center">
             <h2 className="text-2xl font-semibold mb-4">{error}</h2>
-            <Link href="/products" className="text-blue-600 hover:text-blue-800">
+            <Link href="/" className="text-blue-600 hover:text-blue-800">
               Continue Shopping
             </Link>
           </div>
@@ -176,7 +176,7 @@ export default function Cart() {
         <div className="container mx-auto p-6">
           <div className="text-center">
             <h2 className="text-2xl font-semibold mb-4">Your cart is empty</h2>
-            <Link href="/products" className="text-blue-600 hover:text-blue-800">
+            <Link href="/" className="text-blue-600 hover:text-blue-800">
               Continue Shopping
             </Link>
           </div>
