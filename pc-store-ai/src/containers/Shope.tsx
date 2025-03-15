@@ -27,6 +27,7 @@ export default function Shope() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<boolean>(false);
+  const [sortOption, setSortOption] = useState<string>('name-asc');
   const productsPerPage = 9;
 
   useEffect(() => {
@@ -58,9 +59,26 @@ export default function Shope() {
       filtered = filtered.filter(product => product.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }
 
+    switch (sortOption) {
+      case 'name-asc':
+        filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'name-desc':
+        filtered = filtered.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'price-asc':
+        filtered = filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        filtered = filtered.sort((a, b) => b.price - a.price);
+        break;
+      default:
+        break;
+    }
+
     setFilteredProducts(filtered);
     setCurrentPage(1);
-  }, [products, selectedSubcategory, searchQuery]);
+  }, [products, selectedSubcategory, searchQuery, sortOption]);
 
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
@@ -149,6 +167,14 @@ export default function Shope() {
           <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center">
             <button className="bg-black text-white px-4 py-1 rounded-full cursor-pointer">Search</button>
           </div>
+        </div>
+        <div className="ml-4">
+          <select value={sortOption} onChange={e => setSortOption(e.target.value)} className="p-2 border border-gray-300 rounded-full">
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+            <option value="price-asc">Price (Low to High)</option>
+            <option value="price-desc">Price (High to Low)</option>
+          </select>
         </div>
       </div>
       <div className="w-full mt-5 p-5 gap-5 flex">
