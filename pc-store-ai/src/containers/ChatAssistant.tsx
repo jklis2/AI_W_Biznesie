@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { Assistant } from '@/constants/assistants';
+
+type ChatAssistantProps = Assistant;
 
 interface Message {
   content: string;
@@ -8,10 +11,10 @@ interface Message {
   id: string;
 }
 
-export default function ChatAssistant() {
+export default function ChatAssistant({ name, gradientFrom, gradientTo }: ChatAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
-      content: "Hello! I'm your PC Store AI assistant. How can I help you today?",
+      content: `Hello! I'm your ${name} AI assistant. How can I help you today?`,
       role: 'assistant',
       id: '1',
     },
@@ -95,18 +98,25 @@ export default function ChatAssistant() {
   const startNewConversation = () => {
     setMessages([
       {
-        content: "Hello! I'm your PC Store AI assistant. How can I help you today?",
+        content: `Hello! I'm your ${name} AI assistant. How can I help you today?`,
         role: 'assistant',
         id: Date.now().toString(),
       },
     ]);
   };
 
+  // Style objects for dynamic gradients
+  const gradientStyle = {
+    background: `linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to))`,
+    '--tw-gradient-from': `var(--${gradientFrom})`,
+    '--tw-gradient-to': `var(--${gradientTo})`,
+  } as React.CSSProperties;
+
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4">
       <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden flex flex-col h-[600px] border border-gray-100">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-4 flex justify-between items-center">
+        <div className="text-white p-4 flex justify-between items-center" style={gradientStyle}>
           <h2 className="text-xl font-bold flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -116,7 +126,7 @@ export default function ChatAssistant() {
                 d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.5 2.25m0 0v5.8a2.25 2.25 0 01-1.5 2.25m0 0a4.5 4.5 0 01-1.5.25m1.5-.25v-5.8a2.25 2.25 0 00-1.5-2.25m0 0V3.104m0 0a24.301 24.301 0 00-4.5 0"
               />
             </svg>
-            PC Store AI Assistant
+            {name}
           </h2>
           <button onClick={startNewConversation} className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -144,16 +154,19 @@ export default function ChatAssistant() {
             {messages.map(message => (
               <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {message.role === 'assistant' && (
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-600 to-blue-500 flex items-center justify-center text-white text-xs mr-2 mt-1">AI</div>
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs mr-2 mt-1" style={gradientStyle}>AI</div>
                 )}
                 <div
                   className={`max-w-[80%] p-3 rounded-2xl ${
-                    message.role === 'user' ? 'bg-gradient-to-r from-indigo-500 to-blue-600 text-white' : 'bg-white text-gray-800 border border-gray-200'
-                  } shadow-sm`}>
+                    message.role === 'user' 
+                      ? 'text-white' 
+                      : 'bg-white text-gray-800 border border-gray-200'
+                  } shadow-sm`}
+                  style={message.role === 'user' ? gradientStyle : undefined}>
                   <p className="whitespace-pre-wrap">{message.content}</p>
                 </div>
                 {message.role === 'user' && (
-                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs ml-2 mt-1">
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs ml-2 mt-1" style={gradientStyle}>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
@@ -164,7 +177,7 @@ export default function ChatAssistant() {
 
             {isTyping && (
               <div className="flex justify-start">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-600 to-blue-500 flex items-center justify-center text-white text-xs mr-2 mt-1">AI</div>
+                <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs mr-2 mt-1" style={gradientStyle}>AI</div>
                 <div className="bg-white text-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200">
                   <div className="flex space-x-2">
                     <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
@@ -192,8 +205,9 @@ export default function ChatAssistant() {
               type="submit"
               disabled={!input.trim()}
               className={`p-3 rounded-full ${
-                input.trim() ? 'bg-gradient-to-r from-indigo-600 to-blue-500 text-white hover:from-indigo-700 hover:to-blue-600' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              } transition-colors shadow-sm`}>
+                input.trim() ? 'text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              } transition-colors shadow-sm`}
+              style={input.trim() ? gradientStyle : undefined}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
