@@ -25,7 +25,7 @@ export default function Shope() {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<boolean>(false);
   const productsPerPage = 9;
 
@@ -154,7 +154,11 @@ export default function Shope() {
       <div className="w-full mt-5 p-5 gap-5 flex">
         <CategoryList onSubcategorySelect={setSelectedSubcategory} selectedSubcategory={selectedSubcategory} />
         {/*Todo: Improve ui for displaying*/}
-        {loading && <p>Loading...</p>}
+        {loading && (
+          <div className="flex justify-center items-center py-12 w-full">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+          </div>
+        )}
         {error && <p>An error occurs!</p>}
         <div className="flex-1 grid grid-cols-3 gap-4">
           {currentProducts.map(product => (
@@ -162,23 +166,25 @@ export default function Shope() {
           ))}
         </div>
       </div>
-      <div className="flex justify-end mt-5 items-center w-full">
-        <button
-          onClick={() => paginate(currentPage - 1)}
-          className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-black text-white'} hover:cursor-pointer rounded-md`}
-          disabled={currentPage === 1}>
-          &lt;
-        </button>
+      {!loading && (
+        <div className="flex justify-end mt-5 items-center w-full">
+          <button
+            onClick={() => paginate(currentPage - 1)}
+            className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-black text-white'} hover:cursor-pointer rounded-md`}
+            disabled={currentPage === 1}>
+            &lt;
+          </button>
 
-        {renderPageNumbers()}
+          {renderPageNumbers()}
 
-        <button
-          onClick={() => paginate(currentPage + 1)}
-          className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === totalPages ? 'bg-gray-200 cursor-not-allowed' : 'bg-black text-white'} hover:cursor-pointer rounded-md`}
-          disabled={currentPage === totalPages}>
-          &gt;
-        </button>
-      </div>
+          <button
+            onClick={() => paginate(currentPage + 1)}
+            className={`w-10 h-10 flex items-center justify-center mx-1 ${currentPage === totalPages ? 'bg-gray-200 cursor-not-allowed' : 'bg-black text-white'} hover:cursor-pointer rounded-md`}
+            disabled={currentPage === totalPages}>
+            &gt;
+          </button>
+        </div>
+      )}
     </div>
   );
 }
