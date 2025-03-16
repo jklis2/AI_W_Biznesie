@@ -22,18 +22,18 @@ export const assistants: Assistant[] = [
     provider: "OpenAI"
   },
   {
-    name: "PC Store AI Assistant (Copilot)",
+    name: "PC Store AI Assistant (Sonar)",
     gradientFrom: "purple-700",
     gradientTo: "pink-600",
-    apiRoute: "/api/ai-assistant/copilot",
-    provider: "Microsoft"
+    apiRoute: "/api/ai-assistant/sonar",
+    provider: "Perplexity"
   },
   {
-    name: "PC Store AI Assistant (Copilot +DB)",
+    name: "PC Store AI Assistant (Sonar +DB)",
     gradientFrom: "purple-500",
     gradientTo: "pink-400",
-    apiRoute: "/api/ai-assistant/copilot-db",
-    provider: "Microsoft"
+    apiRoute: "/api/ai-assistant/sonar-db",
+    provider: "Perplexity"
   },
   {
     name: "PC Store AI Assistant (Gemini)",
