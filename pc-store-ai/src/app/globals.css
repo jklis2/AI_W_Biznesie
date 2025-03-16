@@ -2,14 +2,20 @@
 
 :root {
   /* Gradient colors for chat assistants */
-  --indigo-600: #4f46e5;
-  --blue-500: #3b82f6;
-  --purple-600: #9333ea;
-  --pink-500: #ec4899;
-  --emerald-600: #059669;
-  --teal-500: #14b8a6;
-  --rose-600: #e11d48;
+  --indigo-700: #4338ca;
+  --indigo-500: #6366f1;
+  --blue-600: #2563eb;
+  --blue-400: #60a5fa;
+  --purple-700: #7e22ce;
+  --purple-500: #a855f7;
+  --pink-600: #db2777;
+  --pink-400: #f472b6;
+  --emerald-700: #047857;
+  --emerald-500: #10b981;
+  --teal-600: #0d9488;
+  --teal-400: #2dd4bf;
+  --orange-700: #c2410c;
   --orange-500: #f97316;
-  --amber-600: #d97706;
-  --red-500: #ef4444;
+  --yellow-600: #ca8a04;
+  --yellow-400: #facc15;
 }

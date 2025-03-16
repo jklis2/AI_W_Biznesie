@@ -9,37 +9,58 @@ export interface Assistant {
 export const assistants: Assistant[] = [
   {
     name: "PC Store AI Assistant (GPT-4)",
-    gradientFrom: "indigo-600",
-    gradientTo: "blue-500",
+    gradientFrom: "indigo-700",
+    gradientTo: "blue-600",
     apiRoute: "/api/ai-assistant/openai",
     provider: "OpenAI"
   },
   {
+    name: "PC Store AI Assistant (GPT-4 + DB)",
+    gradientFrom: "indigo-500",
+    gradientTo: "blue-400",
+    apiRoute: "/api/ai-assistant/openai-db",
+    provider: "OpenAI"
+  },
+  {
     name: "PC Store AI Assistant (Copilot)",
-    gradientFrom: "purple-600",
-    gradientTo: "pink-500",
+    gradientFrom: "purple-700",
+    gradientTo: "pink-600",
     apiRoute: "/api/ai-assistant/copilot",
     provider: "Microsoft"
   },
   {
-    name: "PC Store AI Assistant (Claude)",
-    gradientFrom: "emerald-600",
-    gradientTo: "teal-500",
-    apiRoute: "/api/ai-assistant/claude",
-    provider: "Anthropic"
+    name: "PC Store AI Assistant (Copilot +DB)",
+    gradientFrom: "purple-500",
+    gradientTo: "pink-400",
+    apiRoute: "/api/ai-assistant/copilot-db",
+    provider: "Microsoft"
   },
   {
     name: "PC Store AI Assistant (Gemini)",
-    gradientFrom: "amber-600",
-    gradientTo: "orange-500",
+    gradientFrom: "orange-700",
+    gradientTo: "yellow-600",
     apiRoute: "/api/ai-assistant/gemini",
     provider: "Google"
   },
   {
-    name: "PC Store AI Assistant (Llama)",
-    gradientFrom: "rose-600",
-    gradientTo: "red-500",
-    apiRoute: "/api/ai-assistant/llama",
-    provider: "Meta"
-  }
+    name: "PC Store AI Assistant (Gemini + DB)",
+    gradientFrom: "orange-500",
+    gradientTo: "yellow-400",
+    apiRoute: "/api/ai-assistant/gemini-db",
+    provider: "Google"
+  },
+  {
+    name: "PC Store AI Assistant (Deepseek)",
+    gradientFrom: "emerald-700",
+    gradientTo: "teal-600",
+    apiRoute: "/api/ai-assistant/deepseek",
+    provider: "Deepseek"
+  },
+  {
+    name: "PC Store AI Assistant (Deepseek + DB)",
+    gradientFrom: "emerald-500",
+    gradientTo: "teal-400",
+    apiRoute: "/api/ai-assistant/deepseek-db",
+    provider: "Deepseek"
+  },
 ];
