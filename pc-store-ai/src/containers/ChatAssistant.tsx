@@ -29,9 +29,9 @@ export default function ChatAssistant({ name, gradientFrom, gradientTo, apiRoute
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestedQuestions = [
-    'I need a gaming PC with RTX 4090 and Ryzen 7. Budget $2000',
+    'I need a gaming PC with RTX 4090 and Ryzen 7. Budget 2000 PLN',
     'Looking for a gaming PC with good cooling and 32GB RAM',
-    'What PC can I get for $1500?',
+    'What PC can I get for 1500 PLN?',
     'Do you recommend water or air cooling?',
   ];
 
