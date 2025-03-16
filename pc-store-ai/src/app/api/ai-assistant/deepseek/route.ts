@@ -53,7 +53,7 @@ const openai = {
               'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
             },
             body: JSON.stringify({
-              model: "sonar",
+              model: "r1-1776",
               messages: options.messages,
               max_tokens: options.max_tokens || undefined,
               temperature: options.temperature || undefined
@@ -93,8 +93,8 @@ Do not add any other text, comments, or explanations.
         { role: "system", content: systemParseMessage },
         { role: "user", content: userParsePrompt },
       ],
-      max_tokens: 150,
-      temperature: 0
+      max_tokens: 500,
+      temperature: 0.7,
     });
 
     console.log('Parse Response:', parseResponse);
