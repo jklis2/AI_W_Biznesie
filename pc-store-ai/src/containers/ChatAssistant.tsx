@@ -2,6 +2,8 @@
 
 import { useState, useRef } from 'react';
 import { Assistant } from '@/constants/assistants';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 type ChatAssistantProps = Assistant & {
   apiRoute: string;
@@ -107,6 +109,20 @@ export default function ChatAssistant({ name, gradientFrom, gradientTo, apiRoute
     '--tw-gradient-to': `var(--${gradientTo})`,
   } as React.CSSProperties;
 
+  // Custom styles for markdown content
+  const markdownStyles = {
+    table: "min-w-full divide-y divide-gray-300 border border-gray-300 rounded-md overflow-hidden my-4",
+    thead: "bg-gray-100",
+    tbody: "bg-white divide-y divide-gray-200",
+    tr: "hover:bg-gray-50 transition-colors",
+    th: "px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider",
+    td: "px-4 py-3 text-sm text-gray-800 border-t border-gray-200",
+    h3: "text-xl font-bold mt-4 mb-3 text-gray-800",
+    h4: "text-lg font-semibold mt-3 mb-2 text-gray-700",
+    code: "bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800",
+    codeBlock: "bg-gray-100 p-3 rounded-md text-sm font-mono text-gray-800 overflow-x-auto my-3 border border-gray-200",
+  };
+
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4">
       <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden flex flex-col h-[600px] border border-gray-100">
@@ -155,13 +171,55 @@ export default function ChatAssistant({ name, gradientFrom, gradientTo, apiRoute
                   <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs mr-2 mt-1" style={gradientStyle}>AI</div>
                 )}
                 <div
-                  className={`max-w-[80%] p-3 rounded-2xl ${
+                  className={`max-w-[85%] p-3 rounded-2xl ${
                     message.role === 'user' 
                       ? 'text-white' 
                       : 'bg-white text-gray-800 border border-gray-200'
                   } shadow-sm`}
                   style={message.role === 'user' ? gradientStyle : undefined}>
-                  <p className="whitespace-pre-wrap">{message.content}</p>
+                  {message.role === 'assistant' ? (
+                    <div className="markdown-content prose prose-sm max-w-none">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          table: props => (
+                            <div className="overflow-x-auto my-3 rounded-md border border-gray-300">
+                              <table className={markdownStyles.table} {...props} />
+                            </div>
+                          ),
+                          thead: props => <thead className={markdownStyles.thead} {...props} />,
+                          tbody: props => <tbody className={markdownStyles.tbody} {...props} />,
+                          tr: props => <tr className={markdownStyles.tr} {...props} />,
+                          th: props => <th className={markdownStyles.th} {...props} />,
+                          td: props => <td className={markdownStyles.td} {...props} />,
+                          h1: props => <h1 className="text-2xl font-bold mt-4 mb-2 text-gray-900" {...props} />,
+                          h2: props => <h2 className="text-xl font-bold mt-3 mb-2 text-gray-800" {...props} />,
+                          h3: props => <h3 className={markdownStyles.h3} {...props} />,
+                          h4: props => <h4 className={markdownStyles.h4} {...props} />,
+                          p: props => <p className="mb-3 text-gray-700" {...props} />,
+                          ul: props => <ul className="list-disc pl-5 mb-3 text-gray-700 space-y-1" {...props} />,
+                          ol: props => <ol className="list-decimal pl-5 mb-3 text-gray-700 space-y-1" {...props} />,
+                          li: props => <li className="mb-1" {...props} />,
+                          code: (props) => {
+                            const {inline, ...rest} = props as {inline: boolean; children: React.ReactNode};
+                            return inline 
+                              ? <code className={markdownStyles.code} {...rest} />
+                              : <code className={markdownStyles.codeBlock} {...rest} />;
+                          },
+                          pre: props => <pre className="bg-gray-100 p-3 rounded-md overflow-x-auto my-3 border border-gray-200" {...props} />,
+                          blockquote: props => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-3 text-gray-600" {...props} />,
+                          a: props => <a className="text-blue-600 hover:underline" {...props} />,
+                          strong: props => <strong className="font-bold text-gray-900" {...props} />,
+                          em: props => <em className="italic text-gray-800" {...props} />,
+                          hr: props => <hr className="my-4 border-t border-gray-300" {...props} />,
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap">{message.content}</p>
+                  )}
                 </div>
                 {message.role === 'user' && (
                   <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs ml-2 mt-1" style={gradientStyle}>
