@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "@stripe/stripe-js": "^6.0.0",
+    "@types/file-saver": "^2.0.7",
     "@types/multer": "^1.4.12",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.0",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
+    "file-saver": "^2.0.5",
     "jose": "^6.0.10",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.479.0",
@@ -29,7 +31,8 @@
     "react-hot-toast": "^2.5.2",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
-    "stripe": "^17.7.0"
+    "stripe": "^17.7.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
