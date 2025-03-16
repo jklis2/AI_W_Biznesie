@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Assistant } from '@/constants/assistants';
 
-type ChatAssistantProps = Assistant;
+type ChatAssistantProps = Assistant & {
+  apiRoute: string;
+  provider: string;
+};
 
 interface Message {
   content: string;
@@ -11,7 +14,7 @@ interface Message {
   id: string;
 }
 
-export default function ChatAssistant({ name, gradientFrom, gradientTo }: ChatAssistantProps) {
+export default function ChatAssistant({ name, gradientFrom, gradientTo, apiRoute, provider }: ChatAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       content: `Hello! I'm your ${name} AI assistant. How can I help you today?`,
@@ -30,14 +33,6 @@ export default function ChatAssistant({ name, gradientFrom, gradientTo }: ChatAs
     'Do you recommend water or air cooling?',
   ];
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
@@ -52,7 +47,7 @@ export default function ChatAssistant({ name, gradientFrom, gradientTo }: ChatAs
     setIsTyping(true);
 
     try {
-      const response = await fetch('/api/ai-assistant', {
+      const response = await fetch(apiRoute, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,17 +112,20 @@ export default function ChatAssistant({ name, gradientFrom, gradientTo }: ChatAs
       <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden flex flex-col h-[600px] border border-gray-100">
         {/* Header */}
         <div className="text-white p-4 flex justify-between items-center" style={gradientStyle}>
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.5 2.25m0 0v5.8a2.25 2.25 0 01-1.5 2.25m0 0a4.5 4.5 0 01-1.5.25m1.5-.25v-5.8a2.25 2.25 0 00-1.5-2.25m0 0V3.104m0 0a24.301 24.301 0 00-4.5 0"
-              />
-            </svg>
-            {name}
-          </h2>
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 001.5 2.25m0 0v5.8a2.25 2.25 0 01-1.5 2.25m0 0a4.5 4.5 0 01-1.5.25m1.5-.25v-5.8a2.25 2.25 0 00-1.5-2.25m0 0V3.104m0 0a24.301 24.301 0 00-4.5 0"
+                />
+              </svg>
+              {name}
+            </h2>
+            <p className="text-sm text-white/80 mt-1">Powered by {provider}</p>
+          </div>
           <button onClick={startNewConversation} className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

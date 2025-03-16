@@ -18,6 +18,8 @@ export default function AiAssistant() {
               name={assistant.name}
               gradientFrom={assistant.gradientFrom}
               gradientTo={assistant.gradientTo}
+              apiRoute={assistant.apiRoute}
+              provider={assistant.provider}
             />
           </div>
         ))}
