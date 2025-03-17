@@ -510,7 +510,8 @@ export async function POST(req) {
 
 // Function to handle PC set queries
 async function handlePcSetQuery(message, preferences) {
-  const componentQueries = buildComponentQueries(preferences);
+  const intent = detectIntent(message);
+  const componentQueries = buildComponentQueries(preferences, intent.context);
   const components = await fetchComponents(componentQueries);
 
   if (!components) {
@@ -518,7 +519,7 @@ async function handlePcSetQuery(message, preferences) {
   }
 
   const formattedComponents = formatComponents(components);
-  const systemMessage = `You are an expert in building PC computers. Based on the available components, propose the best configuration for a computer set. Pay attention to component compatibility (e.g., processor socket and motherboard, RAM standard). Explain the advantages of the proposed configuration and for what type of applications it will be suitable (gaming, office work, graphic processing, etc.). Format the answer in Markdown with clear headings and bold for important information.`;
+  const systemMessage = generatePcSetSystemMessage(intent.context);
   const userPrompt = `${message}\n\nHere are the available components:\n${formattedComponents}\n\nPlease recommend a computer set based on these components.`;
 
   return generateResponse(systemMessage, userPrompt);
@@ -706,4 +707,23 @@ function highlightKeyFeatures(responseText) {
   // Extract and highlight key features from the response text
   const keyFeatures = responseText.match(/- \*\*[^:]+:\*\* [^\n]+/g) || [];
   return keyFeatures.join('\n');
+}
+
+// Generate system message for PC set queries based on context
+function generatePcSetSystemMessage(context) {
+  let systemMessage = `You are an expert in building PC computers. Based on the available components, propose the best configuration for a computer set. Pay attention to component compatibility (e.g., processor socket and motherboard, RAM standard). Explain the advantages of the proposed configuration. Format the answer in Markdown with clear headings and bold for important information. Always try to utilize the entire budget without overspending, selecting the best components for the price.`;
+
+  if (context === 'gaming') {
+    systemMessage = `You are an expert in building gaming PCs. Based on the available components, propose the best configuration for a gaming computer set. Prioritize components that enhance gaming performance, such as a powerful GPU and fast RAM. Explain the advantages of the proposed configuration for gaming. Consider the budget and try to optimize the build for the best price to performance. Always try to utilize the entire budget without overspending, selecting the best components for the price. Format the answer in Markdown with clear headings and bold for important information.`;
+  } else if (context === 'streaming') {
+    systemMessage = `You are an expert in building streaming PCs. Based on the available components, propose the best configuration for a streaming computer set. Prioritize components that enhance streaming quality, such as a multi-core CPU and a high-quality webcam. Explain the advantages of the proposed configuration for streaming. Consider the budget and try to optimize the build for the best price to performance. Always try to utilize the entire budget without overspending, selecting the best components for the price. Format the answer in Markdown with clear headings and bold for important information.`;
+  } else if (context === 'office') {
+    systemMessage = `You are an expert in building office PCs. Based on the available components, propose the best configuration for an office computer set. Prioritize components that enhance productivity, such as a fast CPU and ample storage. Explain the advantages of the proposed configuration for office work. Consider the budget and try to optimize the build for the best price to performance. Always try to utilize the entire budget without overspending, selecting the best components for the price. Format the answer in Markdown with clear headings and bold for important information.`;
+  } else if (context === 'lifeday') {
+    systemMessage = `You are an expert in building PCs for general use. Based on the available components, propose a balanced configuration for a computer set suitable for everyday tasks. Explain the advantages of the proposed configuration for general use. Consider the budget and try to optimize the build for the best price to performance. Always try to utilize the entire budget without overspending, selecting the best components for the price. Format the answer in Markdown with clear headings and bold for important information.`;
+  } else if (context === 'programming') {
+    systemMessage = `You are an expert in building PCs for programming. Based on the available components, propose the best configuration for a computer set. Prioritize components that enhance programming performance, such as a fast CPU, ample RAM, and fast storage. Explain the advantages of the proposed configuration for programming. Consider the budget and try to optimize the build for the best price to performance. Always try to utilize the entire budget without overspending, selecting the best components for the price. Format the answer in Markdown with clear headings and bold for important information.`;
+  }
+
+  return systemMessage;
 }
