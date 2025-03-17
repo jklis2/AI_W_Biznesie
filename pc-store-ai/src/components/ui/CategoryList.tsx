@@ -23,6 +23,14 @@ interface Props {
 
 export default function CategoryList({ onSubcategorySelect, selectedSubcategory }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
+  interface Product {
+    _id: string;
+    name: string;
+    price: number;
+    subcategory: string;
+  }
+
+  const [products, setProducts] = useState<Product[]>([]);
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
 
@@ -41,7 +49,22 @@ export default function CategoryList({ onSubcategorySelect, selectedSubcategory 
       }
     }
 
+    async function fetchProducts() {
+      try {
+        const response = await fetch('/api/products');
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setProducts([]);
+      }
+    }
+
     fetchCategories();
+    fetchProducts();
   }, []);
 
   const handleCategoryClick = (categoryId: string) => {
@@ -53,18 +76,23 @@ export default function CategoryList({ onSubcategorySelect, selectedSubcategory 
     setActiveCategoryId(categoryId);
   };
 
+  const getSubcategoryProductCount = (subcategoryId: string) => {
+    return products.filter(product => product.subcategory === subcategoryId).length;
+  };
+
   return (
     <div className="max-w-md w-1/6">
       <h1 className="text-2xl font-bold mb-4 text-neutral-900">Category</h1>
       <ul className="space-y-2">
         <li
           key="all-products"
-          className={`cursor-pointer p-2 pl-5 font-semibold text-neutral-600 ${selectedSubcategory === null && activeCategoryId === null ? 'bg-gray-100 rounded-lg' : ''}`}
+          className={`cursor-pointer p-2 pl-5 font-semibold text-neutral-600 flex justify-between items-center ${selectedSubcategory === null && activeCategoryId === null ? 'bg-gray-100 rounded-lg' : ''}`}
           onClick={() => {
             onSubcategorySelect(null);
             setActiveCategoryId(null);
           }}>
-          All Products
+          <span>All Products</span>
+          <span className="text-sm text-neutral-500">({products.length})</span>
         </li>
 
         {categories.map(category => (
@@ -95,7 +123,10 @@ export default function CategoryList({ onSubcategorySelect, selectedSubcategory 
                       className={`absolute left-[-16px] top-[50%] h-[1px] w-[16px] bg-gray-300 ${
                         index === category.subcategories.length - 1 ? '' : 'before:absolute before:left-[50%] before:h-[50%] before:w-[1px] before:bg-gray-300'
                       }`}></span>
-                    {subcategory.name}
+                    <div className="flex justify-between items-center">
+                      <span>{subcategory.name}</span>
+                      <span className="text-sm text-neutral-500">({getSubcategoryProductCount(subcategory._id)})</span>
+                    </div>
                   </li>
                 ))}
               </ul>
