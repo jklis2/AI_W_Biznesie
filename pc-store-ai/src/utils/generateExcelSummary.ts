@@ -20,13 +20,6 @@ interface ComponentCategory {
   subcategories: string[];
 }
 
-// Interfejs dla wiersza analizy komponentów
-interface ComponentRow {
-  Category: string;
-  Subcategory: string;
-  [assistantName: string]: string;
-}
-
 // Interfejs dla znalezionego komponentu
 interface FoundComponent {
   name: string;
@@ -53,8 +46,8 @@ const COLORS = {
 
 const computerComponents: ComponentCategory[] = [
   {
-    name: 'Computer components',
-    subcategories: ['Processor', 'RAM', 'PC Power Supplies', 'Graphics cards', 'Motherboards', 'Storage', 'Case', 'Cooling']
+    name: 'Components',
+    subcategories: ['CPU', 'Motherboard', 'RAM', 'Graphics cards', 'Storage', 'PC Power Supplies', 'Case', 'Cooling']
   },
   {
     name: 'Peripherals',
@@ -68,11 +61,11 @@ const computerComponents: ComponentCategory[] = [
 
 // Słownik komponentów z popularnymi nazwami i modelami
 const componentKeywords: Record<string, string[]> = {
-  'Processor': ['CPU', 'processor', 'intel', 'amd', 'ryzen', 'core i', 'pentium', 'celeron', 'threadripper', 'i3', 'i5', 'i7', 'i9'],
+  'CPU': ['CPU', 'processor', 'intel', 'amd', 'ryzen', 'core i', 'pentium', 'celeron', 'threadripper', 'i3', 'i5', 'i7', 'i9'],
   'RAM': ['ram', 'memory', 'ddr4', 'ddr5', 'dimm', 'sodimm', 'gb ram', 'memory stick'],
   'PC Power Supplies': ['psu', 'power supply', 'power supplies', 'watt', 'watts', 'w power', 'corsair', 'evga', 'seasonic'],
   'Graphics cards': ['gpu', 'graphics card', 'graphics', 'rtx', 'gtx', 'radeon', 'nvidia', 'amd', 'geforce'],
-  'Motherboards': ['motherboard', 'mainboard', 'mobo', 'asus', 'gigabyte', 'msi', 'asrock', 'socket'],
+  'Motherboard': ['motherboard', 'mainboard', 'mobo', 'asus', 'gigabyte', 'msi', 'asrock', 'socket'],
   'Storage': ['ssd', 'hdd', 'nvme', 'storage', 'hard drive', 'solid state', 'samsung', 'western digital', 'seagate', 'kingston', 'tb', 'gb storage'],
   'Case': ['case', 'chassis', 'tower', 'atx', 'itx', 'mid tower', 'full tower'],
   'Cooling': ['cooling', 'cooler', 'fan', 'radiator', 'aio', 'liquid cooling', 'air cooling', 'heatsink', 'noctua'],
@@ -278,6 +271,126 @@ export const generateExcelSummary = (chatDataArray: ChatData[]): boolean => {
     // Create a new workbook
     const workbook = XLSX.utils.book_new();
     
+    // Utwórz arkusz z analizą komponentów w formacie zgodnym z obrazem
+    // Przygotuj dane dla arkusza SUMMARY
+    const summaryDataComponents: Array<Array<string>> = [];
+    
+    // Dodaj nagłówki kolumn (używając nazw asystentów zamiast Chat 1, Chat 2, itd.)
+    const headers = ['Components'];
+    chatDataArray.forEach((chatData) => {
+      headers.push(chatData.assistantName);
+    });
+    summaryDataComponents.push(headers);
+    
+    // Analizuj komponenty dla każdego czatu
+    const chatComponents: Record<string, Record<string, FoundComponent[]>> = {};
+    chatDataArray.forEach(chatData => {
+      chatComponents[chatData.assistantName] = analyzeComponentsInChat(chatData.messages);
+    });
+    
+    // Dodaj wszystkie kategorie i podkategorie w pierwszej kolumnie
+    computerComponents.forEach(category => {
+      // Dodaj wiersz kategorii
+      const categoryRow = new Array(headers.length).fill('');
+      categoryRow[0] = category.name;
+      summaryDataComponents.push(categoryRow);
+      
+      // Dodaj wiersze podkategorii
+      category.subcategories.forEach(subcategory => {
+        const subcategoryRow = new Array(headers.length).fill('');
+        subcategoryRow[0] = subcategory;
+        
+        // Dodaj znalezione komponenty dla każdego czatu w odpowiednich kolumnach
+        chatDataArray.forEach((chatData, chatIndex) => {
+          const components = chatComponents[chatData.assistantName][subcategory] || [];
+          if (components.length > 0) {
+            // Wybierz najlepszy komponent (pierwszy z listy) i dodaj go z ceną
+            const bestComponent = components[0];
+            if (bestComponent.price) {
+              subcategoryRow[chatIndex + 1] = `${bestComponent.name} - ${bestComponent.price}`;
+            } else {
+              subcategoryRow[chatIndex + 1] = bestComponent.name;
+            }
+          }
+        });
+        
+        summaryDataComponents.push(subcategoryRow);
+      });
+    });
+    
+    // Utwórz arkusz SUMMARY
+    const summaryWorksheetComponents = XLSX.utils.aoa_to_sheet(summaryDataComponents);
+    
+    // Dostosuj szerokość kolumn
+    const summaryCols = [
+      { wch: 25 }, // Components
+    ];
+    
+    // Dodaj szerokość dla każdego czatu
+    chatDataArray.forEach(() => {
+      summaryCols.push({ wch: 40 }); // Szerokość kolumny dla czatu
+    });
+    
+    summaryWorksheetComponents['!cols'] = summaryCols;
+    
+    // Dodaj style do arkusza SUMMARY
+    if (!summaryWorksheetComponents['!styles']) {
+      summaryWorksheetComponents['!styles'] = {};
+    }
+    
+    // Styl nagłówków kolumn
+    for (let i = 0; i < headers.length; i++) {
+      const col = String.fromCharCode(65 + i); // A, B, C, ...
+      summaryWorksheetComponents['!styles'][`${col}1`] = {
+        font: { bold: true, color: { rgb: COLORS.WHITE } },
+        fill: { fgColor: { rgb: COLORS.HEADER_BG } },
+        alignment: { horizontal: 'center' }
+      };
+    }
+    
+    // Style dla wierszy kategorii i podkategorii
+    for (let rowIndex = 1; rowIndex < summaryDataComponents.length; rowIndex++) {
+      const row = summaryDataComponents[rowIndex];
+      const excelRowIndex = rowIndex + 1; // +1 bo nagłówki są w wierszu 1
+      
+      // Sprawdź, czy to wiersz kategorii (kategorie są w computerComponents)
+      const isCategory = computerComponents.some(cat => cat.name === row[0]);
+      
+      if (isCategory) {
+        // Styl dla nazwy kategorii
+        summaryWorksheetComponents['!styles'][`A${excelRowIndex}`] = {
+          font: { bold: true, sz: 12, color: { rgb: COLORS.PRIMARY } },
+          fill: { fgColor: { rgb: COLORS.CATEGORY_BG } }
+        };
+        
+        // Styl dla pozostałych komórek w wierszu kategorii
+        for (let colIndex = 1; colIndex < headers.length; colIndex++) {
+          const col = String.fromCharCode(65 + colIndex);
+          summaryWorksheetComponents['!styles'][`${col}${excelRowIndex}`] = {
+            fill: { fgColor: { rgb: COLORS.CATEGORY_BG } }
+          };
+        }
+      } else {
+        // Styl dla nazwy podkategorii
+        summaryWorksheetComponents['!styles'][`A${excelRowIndex}`] = {
+          font: { bold: true, color: { rgb: COLORS.SECONDARY } },
+          fill: { fgColor: { rgb: COLORS.SUBCATEGORY_BG } }
+        };
+        
+        // Styl dla komórek z danymi komponentów
+        for (let colIndex = 1; colIndex < headers.length; colIndex++) {
+          const col = String.fromCharCode(65 + colIndex);
+          summaryWorksheetComponents['!styles'][`${col}${excelRowIndex}`] = {
+            fill: { fgColor: { rgb: COLORS.SUBCATEGORY_BG } },
+            alignment: { wrapText: true, vertical: 'top' }
+          };
+        }
+      }
+    }
+    
+    // Dodaj arkusz SUMMARY jako pierwszy arkusz w workbook
+    XLSX.utils.book_append_sheet(workbook, summaryWorksheetComponents, 'SUMMARY');
+    
     // Dodaj arkusz z informacjami o firmie
     const companyInfoSheet = XLSX.utils.aoa_to_sheet([
       ['PC Store AI - Chat Analysis'],
@@ -325,11 +438,10 @@ export const generateExcelSummary = (chatDataArray: ChatData[]): boolean => {
       const { assistantName, messages } = chatData;
       
       // Format the conversation for Excel
-      const formattedData = messages.map((message, index) => ({
-        'Message #': index + 1,
+      const formattedData = messages.map((message) => ({
+        'Message #': message.id, // Using ID as timestamp (could be replaced with actual timestamp if available)
         'Role': message.role === 'user' ? 'User' : assistantName,
         'Content': message.content,
-        'Timestamp': message.id, // Using ID as timestamp (could be replaced with actual timestamp if available)
       }));
       
       // Create a worksheet for this chat
@@ -340,7 +452,6 @@ export const generateExcelSummary = (chatDataArray: ChatData[]): boolean => {
         { wch: 10 },  // Message #
         { wch: 15 },  // Role
         { wch: 80 },  // Content
-        { wch: 20 },  // Timestamp
       ];
       
       // Dodaj style do arkusza
@@ -349,7 +460,7 @@ export const generateExcelSummary = (chatDataArray: ChatData[]): boolean => {
       }
       
       // Styl nagłówków kolumn
-      ['A1', 'B1', 'C1', 'D1'].forEach(cell => {
+      ['A1', 'B1', 'C1'].forEach(cell => {
         worksheet['!styles'][cell] = {
           font: { bold: true, color: { rgb: COLORS.WHITE } },
           fill: { fgColor: { rgb: COLORS.HEADER_BG } },
@@ -358,9 +469,9 @@ export const generateExcelSummary = (chatDataArray: ChatData[]): boolean => {
       });
       
       // Dodaj style dla wierszy z wiadomościami użytkownika i asystenta
-      formattedData.forEach((_, index) => {
-        const rowIndex = index + 2; // +2 bo nagłówki są w wierszu 1
-        const isUserMessage = formattedData[index]['Role'] === 'User';
+      formattedData.forEach((_, msgIndex) => {
+        const rowIndex = msgIndex + 2; // +2 bo nagłówki są w wierszu 1
+        const isUserMessage = formattedData[msgIndex]['Role'] === 'User';
         
         // Styl dla roli
         worksheet['!styles'][`B${rowIndex}`] = {
@@ -371,7 +482,7 @@ export const generateExcelSummary = (chatDataArray: ChatData[]): boolean => {
         };
         
         // Styl dla całego wiersza
-        ['A', 'B', 'C', 'D'].forEach(col => {
+        ['A', 'B', 'C'].forEach(col => {
           worksheet['!styles'][`${col}${rowIndex}`] = {
             fill: { 
               fgColor: { rgb: isUserMessage ? COLORS.LIGHT : COLORS.WHITE } 
@@ -380,12 +491,14 @@ export const generateExcelSummary = (chatDataArray: ChatData[]): boolean => {
         });
       });
       
-      // Add the worksheet to the workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, assistantName.substring(0, 31)); // Excel sheet names limited to 31 chars
+      // Add the worksheet to the workbook - używamy nazwy asystenta zamiast Chat 1, Chat 2, itd.
+      // Limit do 31 znaków ze względu na ograniczenia Excel
+      const sheetName = assistantName.length > 31 ? assistantName.substring(0, 31) : assistantName;
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
     });
     
     // Generate a summary sheet with statistics
-    const summaryData = chatDataArray.map((chatData) => {
+    const statisticsData = chatDataArray.map((chatData) => {
       const userMessages = chatData.messages.filter(m => m.role === 'user').length;
       const assistantMessages = chatData.messages.filter(m => m.role === 'assistant').length;
       const totalChars = chatData.messages.reduce((sum, msg) => sum + msg.content.length, 0);
@@ -404,14 +517,14 @@ export const generateExcelSummary = (chatDataArray: ChatData[]): boolean => {
       };
     });
     
-    // Create and add the summary worksheet
-    if (summaryData.length > 0) {
-      const summaryWorksheet = XLSX.utils.json_to_sheet(summaryData);
+    // Create and add the statistics worksheet
+    if (statisticsData.length > 0) {
+      const statisticsWorksheet = XLSX.utils.json_to_sheet(statisticsData);
       
       // Dostosuj szerokość kolumn
-      summaryWorksheet['!cols'] = [
-        { wch: 20 },  // Assistant
-        { wch: 15 },  // Total Messages
+      statisticsWorksheet['!cols'] = [
+        { wch: 10 },  // Assistant
+        { wch: 20 },  // Total Messages
         { wch: 15 },  // User Messages
         { wch: 15 },  // Assistant Messages
         { wch: 25 },  // Average Message Length
@@ -421,14 +534,14 @@ export const generateExcelSummary = (chatDataArray: ChatData[]): boolean => {
       ];
       
       // Dodaj style do arkusza
-      if (!summaryWorksheet['!styles']) {
-        summaryWorksheet['!styles'] = {};
+      if (!statisticsWorksheet['!styles']) {
+        statisticsWorksheet['!styles'] = {};
       }
       
       // Styl nagłówków kolumn
-      Object.keys(summaryData[0]).forEach((key, index) => {
+      Object.keys(statisticsData[0]).forEach((key, index) => {
         const col = String.fromCharCode(65 + index); // A, B, C, ...
-        summaryWorksheet['!styles'][`${col}1`] = {
+        statisticsWorksheet['!styles'][`${col}1`] = {
           font: { bold: true, color: { rgb: COLORS.WHITE } },
           fill: { fgColor: { rgb: COLORS.HEADER_BG } },
           alignment: { horizontal: 'center' }
@@ -436,276 +549,38 @@ export const generateExcelSummary = (chatDataArray: ChatData[]): boolean => {
       });
       
       // Styl dla danych
-      summaryData.forEach((_, index) => {
-        const rowIndex = index + 2; // +2 bo nagłówki są w wierszu 1
+      statisticsData.forEach((_, rowIdx) => {
+        const rowIndex = rowIdx + 2; // +2 bo nagłówki są w wierszu 1
         
         // Styl dla nazwy asystenta
-        summaryWorksheet['!styles'][`A${rowIndex}`] = {
+        statisticsWorksheet['!styles'][`A${rowIndex}`] = {
           font: { bold: true, color: { rgb: COLORS.PRIMARY } }
         };
         
+        statisticsWorksheet['!styles'][`B${rowIndex}`] = {
+          font: { italic: true, color: { rgb: COLORS.SECONDARY } }
+        };
+        
         // Styl dla liczb
-        ['B', 'C', 'D', 'E', 'F', 'G', 'H'].forEach(col => {
-          summaryWorksheet['!styles'][`${col}${rowIndex}`] = {
+        ['C', 'D', 'E', 'F', 'G', 'H', 'I'].forEach(col => {
+          statisticsWorksheet['!styles'][`${col}${rowIndex}`] = {
             alignment: { horizontal: 'center' }
           };
         });
         
         // Dodaj tło dla co drugiego wiersza
-        if (index % 2 === 1) {
-          Object.keys(summaryData[0]).forEach((_, colIndex) => {
+        if (rowIdx % 2 === 1) {
+          Object.keys(statisticsData[0]).forEach((_, colIndex) => {
             const col = String.fromCharCode(65 + colIndex);
-            summaryWorksheet['!styles'][`${col}${rowIndex}`] = {
-              ...summaryWorksheet['!styles'][`${col}${rowIndex}`] || {},
+            statisticsWorksheet['!styles'][`${col}${rowIndex}`] = {
+              ...statisticsWorksheet['!styles'][`${col}${rowIndex}`] || {},
               fill: { fgColor: { rgb: COLORS.LIGHT } }
             };
           });
         }
       });
       
-      XLSX.utils.book_append_sheet(workbook, summaryWorksheet, 'Statistics');
-    }
-    
-    // Utwórz arkusz z analizą komponentów
-    const componentsAnalysis: ComponentRow[] = [];
-    
-    // Przygotuj nagłówki dla arkusza komponentów
-    const componentHeaders: ComponentRow = {
-      'Category': 'Category',
-      'Subcategory': 'Subcategory'
-    };
-    
-    // Dodaj nazwy asystentów jako nagłówki kolumn
-    chatDataArray.forEach(chatData => {
-      componentHeaders[chatData.assistantName] = chatData.assistantName;
-    });
-    
-    // Dodaj wiersz nagłówków
-    componentsAnalysis.push(componentHeaders);
-    
-    // Analizuj komponenty dla każdego czatu
-    const chatComponents: Record<string, Record<string, FoundComponent[]>> = {};
-    chatDataArray.forEach(chatData => {
-      chatComponents[chatData.assistantName] = analyzeComponentsInChat(chatData.messages);
-    });
-    
-    // Wypełnij arkusz danymi o komponentach
-    computerComponents.forEach(category => {
-      // Dodaj wiersz kategorii
-      const categoryRow: ComponentRow = {
-        'Category': category.name,
-        'Subcategory': ''
-      };
-      chatDataArray.forEach(chatData => {
-        categoryRow[chatData.assistantName] = '';
-      });
-      componentsAnalysis.push(categoryRow);
-      
-      // Dodaj wiersze podkategorii
-      category.subcategories.forEach(subcategory => {
-        const subcategoryRow: ComponentRow = {
-          'Category': '',
-          'Subcategory': subcategory
-        };
-        
-        // Dodaj znalezione komponenty dla każdego czatu
-        chatDataArray.forEach(chatData => {
-          const components = chatComponents[chatData.assistantName][subcategory] || [];
-          subcategoryRow[chatData.assistantName] = components.map(comp => {
-            if (comp.price) {
-              return `${comp.name} (${comp.price})`;
-            }
-            return comp.name;
-          }).join('\n');
-        });
-        
-        componentsAnalysis.push(subcategoryRow);
-      });
-    });
-    
-    // Utwórz arkusz z analizą komponentów
-    const componentsWorksheet = XLSX.utils.json_to_sheet(componentsAnalysis);
-    
-    // Dostosuj szerokość kolumn
-    const componentsCols = [
-      { wch: 20 }, // Category
-      { wch: 25 }, // Subcategory
-    ];
-    
-    // Dodaj szerokość dla każdego asystenta
-    chatDataArray.forEach(() => {
-      componentsCols.push({ wch: 40 }); // Szerokość kolumny dla asystenta
-    });
-    
-    componentsWorksheet['!cols'] = componentsCols;
-    
-    // Dodaj style do arkusza komponentów
-    if (!componentsWorksheet['!styles']) {
-      componentsWorksheet['!styles'] = {};
-    }
-    
-    // Styl nagłówków kolumn
-    Object.keys(componentHeaders).forEach((key, index) => {
-      const col = String.fromCharCode(65 + index); // A, B, C, ...
-      componentsWorksheet['!styles'][`${col}1`] = {
-        font: { bold: true, color: { rgb: COLORS.WHITE } },
-        fill: { fgColor: { rgb: COLORS.HEADER_BG } },
-        alignment: { horizontal: 'center' }
-      };
-    });
-    
-    // Style dla wierszy kategorii i podkategorii
-    componentsAnalysis.forEach((row, index) => {
-      if (index === 0) return; // Pomijamy nagłówki
-      
-      const rowIndex = index + 1;
-      
-      // Jeśli to wiersz kategorii (ma niepustą wartość Category)
-      if (row.Category) {
-        // Styl dla nazwy kategorii
-        componentsWorksheet['!styles'][`A${rowIndex}`] = {
-          font: { bold: true, sz: 12, color: { rgb: COLORS.PRIMARY } },
-          fill: { fgColor: { rgb: COLORS.CATEGORY_BG } }
-        };
-        
-        // Styl dla pozostałych komórek w wierszu kategorii
-        Object.keys(componentHeaders).forEach((_, colIndex) => {
-          if (colIndex === 0) return; // Pomijamy kolumnę Category, którą już ostylowaliśmy
-          
-          const col = String.fromCharCode(65 + colIndex);
-          componentsWorksheet['!styles'][`${col}${rowIndex}`] = {
-            fill: { fgColor: { rgb: COLORS.CATEGORY_BG } }
-          };
-        });
-      } 
-      // Jeśli to wiersz podkategorii (ma niepustą wartość Subcategory)
-      else if (row.Subcategory) {
-        // Styl dla nazwy podkategorii
-        componentsWorksheet['!styles'][`B${rowIndex}`] = {
-          font: { bold: true, color: { rgb: COLORS.SECONDARY } },
-          fill: { fgColor: { rgb: COLORS.SUBCATEGORY_BG } }
-        };
-        
-        // Styl dla pozostałych komórek w wierszu podkategorii
-        Object.keys(componentHeaders).forEach((_, colIndex) => {
-          if (colIndex === 1) return; // Pomijamy kolumnę Subcategory, którą już ostylowaliśmy
-          
-          const col = String.fromCharCode(65 + colIndex);
-          componentsWorksheet['!styles'][`${col}${rowIndex}`] = {
-            fill: { fgColor: { rgb: COLORS.SUBCATEGORY_BG } },
-            alignment: { wrapText: true, vertical: 'top' }
-          };
-        });
-      }
-    });
-    
-    XLSX.utils.book_append_sheet(workbook, componentsWorksheet, 'Components Analysis');
-    
-    // Dodaj arkusz z podsumowaniem cen
-    interface PriceDataRow {
-      Category: string;
-      Component: string;
-      Price: string;
-      Assistant: string;
-    }
-    
-    const priceData: PriceDataRow[] = [];
-    
-    // Nagłówek dla arkusza cen
-    priceData.push({
-      'Category': 'Category',
-      'Component': 'Component',
-      'Price': 'Price',
-      'Assistant': 'Assistant'
-    });
-    
-    // Zbierz wszystkie komponenty z cenami
-    chatDataArray.forEach(chatData => {
-      const assistantName = chatData.assistantName;
-      
-      computerComponents.forEach(category => {
-        category.subcategories.forEach(subcategory => {
-          const components = chatComponents[assistantName][subcategory] || [];
-          
-          components.forEach(comp => {
-            if (comp.price) {
-              priceData.push({
-                'Category': category.name,
-                'Component': `${subcategory}: ${comp.name}`,
-                'Price': comp.price,
-                'Assistant': assistantName
-              });
-            }
-          });
-        });
-      });
-    });
-    
-    // Jeśli znaleziono jakieś ceny, utwórz arkusz
-    if (priceData.length > 1) { // > 1 bo mamy już nagłówek
-      const priceWorksheet = XLSX.utils.json_to_sheet(priceData);
-      
-      // Dostosuj szerokość kolumn
-      priceWorksheet['!cols'] = [
-        { wch: 20 }, // Category
-        { wch: 40 }, // Component
-        { wch: 15 }, // Price
-        { wch: 20 }, // Assistant
-      ];
-      
-      // Dodaj style do arkusza cen
-      if (!priceWorksheet['!styles']) {
-        priceWorksheet['!styles'] = {};
-      }
-      
-      // Styl nagłówków
-      ['A1', 'B1', 'C1', 'D1'].forEach(cell => {
-        priceWorksheet['!styles'][cell] = {
-          font: { bold: true, color: { rgb: COLORS.WHITE } },
-          fill: { fgColor: { rgb: COLORS.HEADER_BG } },
-          alignment: { horizontal: 'center' }
-        };
-      });
-      
-      // Style dla wierszy danych
-      priceData.forEach((_, index) => {
-        if (index === 0) return; // Pomijamy nagłówek
-        
-        const rowIndex = index + 1;
-        
-        // Styl dla kategorii
-        priceWorksheet['!styles'][`A${rowIndex}`] = {
-          font: { color: { rgb: COLORS.PRIMARY } }
-        };
-        
-        // Styl dla komponentu
-        priceWorksheet['!styles'][`B${rowIndex}`] = {
-          font: { bold: true }
-        };
-        
-        // Styl dla ceny
-        priceWorksheet['!styles'][`C${rowIndex}`] = {
-          font: { color: { rgb: COLORS.SUCCESS } },
-          alignment: { horizontal: 'center' }
-        };
-        
-        // Styl dla asystenta
-        priceWorksheet['!styles'][`D${rowIndex}`] = {
-          font: { italic: true, color: { rgb: COLORS.SECONDARY } }
-        };
-        
-        // Dodaj tło dla co drugiego wiersza
-        if (index % 2 === 1) {
-          ['A', 'B', 'C', 'D'].forEach(col => {
-            priceWorksheet['!styles'][`${col}${rowIndex}`] = {
-              ...priceWorksheet['!styles'][`${col}${rowIndex}`] || {},
-              fill: { fgColor: { rgb: COLORS.LIGHT } }
-            };
-          });
-        }
-      });
-      
-      XLSX.utils.book_append_sheet(workbook, priceWorksheet, 'Price Analysis');
+      XLSX.utils.book_append_sheet(workbook, statisticsWorksheet, 'Statistics');
     }
     
     // Generate the Excel file
