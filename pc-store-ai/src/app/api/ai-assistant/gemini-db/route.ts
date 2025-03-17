@@ -179,9 +179,18 @@ Do not add any other text, comments, or explanations.
     }
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
 
-    return JSON.parse(text);
+    // Remove backticks and "json" keyword if present
+    text = text.replace(/```json\n/g, '').replace(/```/g, '');
+
+    try {
+      return JSON.parse(text);
+    } catch (jsonError) {
+      console.error('Error parsing JSON:', jsonError);
+      console.error('Received text:', text);
+      return {};
+    }
   } catch (e) {
     console.error('Error parsing user message:', e);
     return {};
