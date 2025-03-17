@@ -243,7 +243,11 @@ const buildComponentQueries = (preferences, context = null) => {
 
   // Build queries for each component
   for (const [key, subcategoryId] of Object.entries(components)) {
-    queries[key] = buildQuery(subcategoryId, { [key]: preferences[key] }, preferences.budget ? preferences.budget / Object.keys(components).length : null);
+    let budgetShare = preferences.budget ? preferences.budget / Object.keys(components).length : null;
+    if (key === 'RAM' || key === 'motherboard') {
+      budgetShare = preferences.budget ? preferences.budget / 2 : null; // Divide budget between RAM and motherboard
+    }
+    queries[key] = buildQuery(subcategoryId, { [key]: preferences[key] }, budgetShare);
   }
 
   // Adjust queries based on context
@@ -427,6 +431,8 @@ ${specs}`;
     .join('\n\n');
 };
 
+// Removed duplicate function implementation
+
 // Generowanie odpowiedzi przy użyciu Gemini API
 const generateGeminiResponse = async (systemMessage, userPrompt) => {
   try {
@@ -441,7 +447,7 @@ const generateGeminiResponse = async (systemMessage, userPrompt) => {
       ],
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 700,
+        maxOutputTokens: 1000,
       },
     };
 
@@ -589,10 +595,46 @@ async function fetchComponents(componentQueries) {
 function formatComponents(components) {
   let formattedComponents = '';
   for (const [category, products] of Object.entries(components)) {
+    if (category === 'RAM') {
+      continue; // Skip RAM formatting here, handle it with motherboards
+    }
     if (products.length > 0) {
       formattedComponents += `\n## ${category.toUpperCase()}\n\n`;
       formattedComponents += formatProductList(products, category);
     }
+  }
+
+  // Format motherboards and their compatible RAM
+  if (components.motherboard && components.motherboard.length > 0 && components.RAM && components.RAM.length > 0) {
+    formattedComponents += `\n## MOTHERBOARDS & COMPATIBLE RAM\n\n`;
+    components.motherboard.forEach(motherboard => {
+      formattedComponents += `### Motherboard: **${motherboard.name}**\n`;
+      formattedComponents += `- **Brand**: ${motherboard.brand || 'N/A'}\n`;
+      formattedComponents += `- **Socket**: ${motherboard.specifications?.Socket || 'N/A'}\n`;
+      formattedComponents += `- **RAM Type**: ${motherboard.specifications?.['Memory type'] || 'N/A'}\n`; // Corrected to 'Memory type'
+      formattedComponents += `- **Price**: ${motherboard.price} PLN\n\n`;
+
+      // Find compatible RAM modules
+      const compatibleRAM = components.RAM.filter(ram => {
+        const motherboardMemoryType = motherboard.specifications?.['Memory type'];
+        const ramMemoryType = ram.specifications?.['Memory type'];
+
+        // Check if memory types are defined and strictly equal
+        return motherboardMemoryType && ramMemoryType && motherboardMemoryType.trim().toLowerCase() === ramMemoryType.trim().toLowerCase();
+      });
+
+      if (compatibleRAM.length > 0) {
+        formattedComponents += `#### Compatible RAM:\n`;
+        formattedComponents += compatibleRAM
+          .map((ram, index) => {
+            return `- ${ram.name} (**Price**: ${ram.price} PLN, **Capacity**: ${ram.specifications?.['Total capacity'] || 'N/A'}, **Clock Speed**: ${ram.specifications?.['Clock speed'] || 'N/A'})`;
+          })
+          .join('\n');
+        formattedComponents += '\n\n';
+      } else {
+        formattedComponents += `No compatible RAM found.\n\n`;
+      }
+    });
   }
   return formattedComponents;
 }
