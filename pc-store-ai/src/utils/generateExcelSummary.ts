@@ -93,58 +93,20 @@ const analyzeComponentsWithGemini = async (messages: Message[]): Promise<Record<
   };
 
   try {
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    // Użyj klucza API bezpośrednio z kodu - hardcoded dla uproszczenia
+    const GEMINI_API_KEY = 'AIzaSyBG5ik8opRgzbehGsNSBBFyD9rMBwxZVN0';
     
-    if (!GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY is not defined in environment variables');
-      
-      // Create a mock response for testing without API key
-      console.log('Using mock data for components since API key is missing');
-      
-      // Add some sample components based on the example chats
-      foundComponents['Processor'] = [
-        { name: 'AMD Ryzen 7 7700X', price: '1425 PLN' },
-        { name: 'AMD Ryzen 5 5600', price: '469 PLN' }
-      ];
-      foundComponents['Graphics cards'] = [
-        { name: 'NVIDIA GeForce RTX 4070 Ti', price: '800 USD' },
-        { name: 'GeForce RTX 4090', price: '3400 PLN' }
-      ];
-      foundComponents['Motherboards'] = [
-        { name: 'MSI B550-A PRO', price: '469 PLN' },
-        { name: 'ASUS ROG Strix B650E-F Gaming WiFi', price: '280 USD' }
-      ];
-      foundComponents['RAM'] = [
-        { name: 'Kingston FURY 32GB (2x16GB) 3600MHz CL18', price: '300 PLN' },
-        { name: '32GB (2x16GB) DDR5 5600MHz CL36', price: '120 USD' }
-      ];
-      foundComponents['Storage'] = [
-        { name: 'Kingston 1TB M.2 PCIe Gen4 NVMe NV3', price: '225 PLN' },
-        { name: 'Samsung 980 Pro 1TB', price: '80 USD' }
-      ];
-      foundComponents['PC Power Supplies'] = [
-        { name: 'Thermaltake Toughpower GF 650W 80 Plus Gold', price: '418.3 PLN' },
-        { name: 'Corsair RM850x', price: '130 USD' }
-      ];
-      foundComponents['Case'] = [
-        { name: 'Fractal Design North Charcoal Black', price: '599 PLN' }
-      ];
-      foundComponents['Cooling'] = [
-        { name: 'be quiet! Pure Rock 2 Black 120mm', price: '195 PLN' },
-        { name: 'Noctua NH-D15', price: '120 USD' }
-      ];
-      
-      return foundComponents;
-    }
+    console.log('Using Gemini API key:', GEMINI_API_KEY ? 'Key is available' : 'Key is NOT available');
 
     // Przygotuj treść wiadomości do analizy
     const chatContent = messages.map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n\n');
+    console.log('Prepared chat content for analysis, length:', chatContent.length);
 
     const systemPrompt = `
 You are a specialized AI for analyzing computer component discussions. Extract all mentioned computer components from the chat conversation.
 For each component, identify:
 1. The exact component name/model
-2. The price if mentioned (convert to PLN if given in other currency)
+2. The price if mentioned (if no price is mentioned, set price to "N/A")
 
 Categorize components into these categories:
 ${computerComponents.map(category => 
@@ -168,11 +130,12 @@ Return ONLY a JSON object with this exact structure:
 }
 
 Include all subcategories exactly as listed above, even if empty (use empty arrays).
-Be extremely precise with component names and prices.
+Be extremely precise with component names and prices. If no price is mentioned for a component, use "N/A" as the price.
 `;
 
     const userPrompt = `Chat conversation to analyze:\n\n${chatContent}`;
 
+    console.log('Sending request to Gemini API...');
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -185,45 +148,57 @@ Be extremely precise with component names and prices.
       }),
     });
 
+    console.log('Gemini API response status:', response.status);
     const data = await response.json();
-    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    console.log('Received response from Gemini API:', data ? 'Data received' : 'No data');
     
-    if (responseText) {
-      try {
-        // Extract JSON from response (in case there's any extra text)
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsedData = JSON.parse(jsonMatch[0]);
-          
-          // Merge the results into foundComponents with category mapping
-          Object.entries(parsedData).forEach(([category, components]) => {
-            if (Array.isArray(components)) {
-              // Map alternative category names to our standard names
-              const standardCategory = categoryMapping[category] || category;
-              
-              if (foundComponents[standardCategory]) {
-                // Add components to the correct category
-                foundComponents[standardCategory] = [
-                  ...foundComponents[standardCategory],
-                  ...(components as FoundComponent[])
-                ];
-              }
-            }
-          });
-        }
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      console.error('Invalid response structure from Gemini:', JSON.stringify(data));
+      return foundComponents;
+    }
+    
+    const responseText = data.candidates[0].content.parts[0].text;
+    console.log('Parsing response from Gemini, text length:', responseText.length);
+    
+    try {
+      // Extract JSON from response (in case there's any extra text)
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        console.log('Found JSON in response, length:', jsonMatch[0].length);
+        const parsedData = JSON.parse(jsonMatch[0]);
+        console.log('Successfully parsed JSON from Gemini response');
         
-        // Log the extracted components for debugging
-        console.log('Extracted components:', JSON.stringify(foundComponents, null, 2));
-      } catch (error) {
-        console.error('Error parsing Gemini response:', error);
-        console.log('Raw Gemini response:', responseText);
+        // Merge the results into foundComponents with category mapping
+        Object.entries(parsedData).forEach(([category, components]) => {
+          if (Array.isArray(components)) {
+            const standardCategory = categoryMapping[category] || category;
+            
+            if (foundComponents[standardCategory]) {
+              // Add each component to the appropriate category
+              (components as FoundComponent[]).forEach((component: FoundComponent) => {
+                // Ensure component has a name and price (use "N/A" if no price)
+                if (component.name) {
+                  foundComponents[standardCategory].push({
+                    name: component.name,
+                    price: component.price || "N/A"
+                  });
+                }
+              });
+            }
+          }
+        });
+        
+        console.log('Extracted components:', Object.keys(foundComponents).map(key => `${key}: ${foundComponents[key].length} items`));
+      } else {
+        console.error('Failed to extract JSON from Gemini response');
+        console.log('Raw response (first 200 chars):', responseText.substring(0, 200));
       }
-    } else {
-      console.error('No text in Gemini response');
-      console.log('Full Gemini response:', JSON.stringify(data, null, 2));
+    } catch (error) {
+      console.error('Error parsing Gemini response:', error);
+      console.log('Raw response text (first 200 chars):', responseText.substring(0, 200));
     }
   } catch (error) {
-    console.error('Error calling Gemini API:', error);
+    console.error('Error analyzing components with Gemini:', error);
   }
   
   return foundComponents;
