@@ -42,7 +42,8 @@ const ChatAssistant = forwardRef<ChatAssistantRef, ChatAssistantProps>(
 
     const suggestedQuestions = [
       'I need a gaming PC with RTX 4090 and Ryzen 7. Budget 15000 PLN',
-      'Looking for a gaming PC with good cooling and 32GB RAM',
+      'Looking for a computer for a programmer. Budget 10000 PLN',
+      'I need a computer for a streamer',
       'What PC can I get for 5000 PLN?',
     ];
 
@@ -136,7 +137,7 @@ const ChatAssistant = forwardRef<ChatAssistantRef, ChatAssistantProps>(
 
     return (
       <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4">
-        <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden flex flex-col h-[600px] border border-gray-100">
+        <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden flex flex-col h-[800px] border border-gray-100">
           {/* Header */}
           <div className="text-white p-4 flex justify-between items-center" style={gradientStyle}>
             <div>
