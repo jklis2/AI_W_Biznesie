@@ -1,6 +1,6 @@
 'use client';
 
-import { createRef } from 'react';
+import { createRef, useState } from 'react';
 import ChatAssistant, { ChatAssistantRef } from '@/containers/ChatAssistant';
 import PageHeader from '@/components/ui/PageHeader';
 import { assistants } from '@/constants/assistants';
@@ -9,12 +9,18 @@ import { generateAllChatsSummary } from '@/utils/generateExcelSummary';
 export default function AiAssistant() {
   const isOddCount = assistants.length % 2 !== 0;
   const lastItemIndex = assistants.length - 1;
+  const [isGenerating, setIsGenerating] = useState(false);
   
   // Create refs for each chat assistant
   const chatRefsArray = assistants.map(() => createRef<ChatAssistantRef>());
 
-  const handleGenerateSummary = () => {
-    generateAllChatsSummary(chatRefsArray);
+  const handleGenerateSummary = async () => {
+    setIsGenerating(true);
+    try {
+      await generateAllChatsSummary(chatRefsArray);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -39,9 +45,14 @@ export default function AiAssistant() {
       <div className="flex justify-center mt-6 mb-12">
         <button 
           onClick={handleGenerateSummary}
-          className="px-4 py-2 w-64 bg-black text-white rounded-md hover:bg-slate-800 hover:cursor-pointer transition"
+          disabled={isGenerating}
+          className={`px-4 py-2 w-64 bg-black text-white rounded-md transition ${
+            isGenerating 
+              ? 'animate-pulse bg-slate-700' 
+              : 'hover:bg-slate-800 hover:cursor-pointer'
+          }`}
         >
-          Generate Summary
+          {isGenerating ? 'Generating...' : 'Generate Summary'}
         </button>
       </div>
     </PageHeader>
